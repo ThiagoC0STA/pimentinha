@@ -454,7 +454,8 @@ html {
 }
 
 /* ==========================================================================
-   Hold to break (ato 4)
+   Hold to break (ato 4): o progresso vive em --crack (0 a 1), escrito por
+   rAF no wrapper. O veu escuro e as particulas da cena leem de la.
    ========================================================================== */
 
 @keyframes hold-pulse {
@@ -506,30 +507,11 @@ body[data-locked="true"] {
 }
 
 /* ==========================================================================
-   Acessibilidade
-   ========================================================================== */
+   Sobre prefers-reduced-motion: este site NAO respeita, de proposito.
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-  .rv,
-  .rv-words .w,
-  .rv-chars .ch,
-  .rv-scale {
-    opacity: 1 !important;
-    transform: none !important;
-    filter: none !important;
-  }
-  .rv-mask > * {
-    transform: none !important;
-  }
-  .draw-path {
-    stroke-dashoffset: 0 !important;
-  }
-}
+   Windows com "efeitos de animacao" desligado (coisa comum, que muita gente
+   nem sabe que ligou) faz o navegador reportar reduced-motion, e a versao
+   que respeitava isso matava todas as transicoes e nem montava a cena 3D.
+   Resultado: no desktop do Thiago "as animacoes bugavam" e ninguem entendia
+   por que. O site e uma carta pra uma pessoa, nao um produto: ele anima.
+   ========================================================================== */

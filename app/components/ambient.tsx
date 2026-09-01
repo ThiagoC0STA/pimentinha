@@ -28,8 +28,7 @@ const VAGALUMES = [
 ];
 
 export function Ambient() {
-  const { started, reduced, lowPower } = useExperience();
-  if (reduced) return null;
+  const { started, lowPower } = useExperience();
 
   // Poucos, de propósito. Doze pontos subindo ao mesmo tempo viram enfeite de
   // tela de descanso; três ou seis apenas sugerem que o ar está vivo.

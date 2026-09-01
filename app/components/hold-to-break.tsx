@@ -1,12 +1,36 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useExperience } from "@/app/providers/experience";
 import { cn } from "@/lib/cn";
 
 const HOLD_MS = 2100;
 const R = 46;
 const CIRC = 2 * Math.PI * R;
+
+/**
+ * O feedback do hold nao desenha nada: o mundo prende a respiracao com ela.
+ *
+ * Enquanto o dedo esta na tela, um veu escurece tudo ao redor do circulo (so
+ * opacity, roda no compositor) e la na cena as particulas sao puxadas pra
+ * dentro. Rachadura, raio, veia: todas as versoes com linhas radiando do
+ * botao foram reprovadas, e com razao. Tensao aqui e falta de luz, nao risco.
+ */
+function Veu() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none fixed inset-0"
+      style={
+        {
+          background:
+            "radial-gradient(circle at 50% 50%, transparent 11vmin, rgb(2 3 6 / 0.93) 52vmin)",
+          opacity: "var(--crack, 0)",
+        } as CSSProperties
+      }
+    />
+  );
+}
 
 /**
  * O unico momento em que ela toca no site.
@@ -73,6 +97,14 @@ export function HoldToBreak() {
         setCrack(next);
         const ring = ringRef.current;
         if (ring) ring.style.strokeDashoffset = `${CIRC * (1 - next)}`;
+        // O veu escuro le daqui.
+        wrapRef.current?.style.setProperty("--crack", next.toFixed(4));
+        // Batidas tateis a cada quarto do caminho: ela sente que esta indo.
+        if (navigator.vibrate) {
+          for (const marco of [0.25, 0.5, 0.75]) {
+            if (p < marco && next >= marco) navigator.vibrate(10);
+          }
+        }
       }
 
       if (next >= 1) breakShell();
@@ -100,10 +132,11 @@ export function HoldToBreak() {
     <div
       ref={wrapRef}
       className={cn(
-        "flex flex-col items-center gap-6 transition-all duration-1000",
+        "relative flex flex-col items-center gap-6 transition-all duration-1000",
         broken ? "pointer-events-none scale-90 opacity-0" : "opacity-100",
       )}
     >
+      <Veu />
       <button
         type="button"
         aria-label="Segure para continuar"

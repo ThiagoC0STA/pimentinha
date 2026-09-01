@@ -19,6 +19,7 @@ const VERT = /* glsl */ `
   uniform float uPhase;
   uniform float uTime;
   uniform float uBurst;
+  uniform float uPull;
   uniform float uSize;
   uniform float uPixelRatio;
   uniform float uSpread;
@@ -54,6 +55,10 @@ const VERT = /* glsl */ `
     pos.x += sin(uTime * 0.22 + aSeed * 24.0) * wob;
     pos.y += cos(uTime * 0.19 + aSeed * 17.0) * wob;
     pos.z += sin(uTime * 0.15 + aSeed * 31.0) * wob * 0.8;
+
+    // Enquanto ela segura o dedo, o universo inteiro e puxado pra dentro,
+    // prendendo a respiracao junto com ela.
+    pos = mix(pos, pos * 0.42, uPull * (0.35 + aSeed * 0.4));
 
     // O estouro da casca empurra tudo pra fora por um instante, de leve:
     // a onda passa pela nuvem, nao explode a nuvem.
@@ -165,6 +170,7 @@ export function PointCloud({
         uPhase: { value: 0 },
         uTime: { value: 0 },
         uBurst: { value: 0 },
+        uPull: { value: 0 },
         uSize: { value: size },
         uSpread: { value: spread },
         uPixelRatio: { value: 1 },
@@ -186,6 +192,8 @@ export function PointCloud({
     u.uTime.value = state.clock.elapsedTime;
     u.uPhase.value = frame.phase;
     u.uBurst.value = frame.burst * frame.burst;
+    // A succao do hold solta rapido no estouro (dissolve sobe em ~1s).
+    u.uPull.value = frame.crack * (1 - Math.min(1, frame.dissolve * 2.5));
     u.uWarmth.value = frame.warmth;
     u.uSize.value = size;
     u.uSpread.value = spread;

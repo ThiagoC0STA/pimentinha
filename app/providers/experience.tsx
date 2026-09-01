@@ -109,8 +109,12 @@ const PALETTE_KEYS = Object.keys(COLD);
 
 /** Formacao alvo da nuvem em cada ato. Interpolado entre atos vizinhos. */
 const PHASE_BY_ACT = [0, 0.55, 1, 1, 1, 2.35, 2.7, 3, 4, 4];
-/** Presenca da casca em cada ato. */
-const SHELL_BY_ACT = [0, 0.5, 0.9, 1, 1, 0, 0, 0, 0, 0];
+/**
+ * Presenca da casca em cada ato. No ato da quebra ela ja saiu de cena: o
+ * momento do dedo dela e tela escura, o circulo e o vidro trincando. A
+ * esfera 3D brilhando ali em cima era exatamente o excesso que estava feio.
+ */
+const SHELL_BY_ACT = [0, 0.5, 0.9, 1, 0, 0, 0, 0, 0, 0];
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
@@ -368,9 +372,11 @@ export function Experience({ children }: { children: ReactNode }) {
       let shell = lerp(SHELL_BY_ACT[current], SHELL_BY_ACT[nextAct], progress);
 
       // Antes de quebrar, a nuvem nao passa da casca por mais que ela role.
+      // A casca em si so e forcada nos atos 2 e 3: no 4 ela sai de cena de
+      // proposito pra deixar o momento do dedo dela limpo.
       if (!brokenRef.current) {
         phase = Math.min(phase, 1);
-        shell = Math.max(shell, current >= 2 ? 1 : shell);
+        if (current >= 2 && current <= 3) shell = Math.max(shell, 1);
       }
 
       f.phase = lerp(f.phase, phase, 0.06);

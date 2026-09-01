@@ -1,5 +1,6 @@
 "use client";
 
+import { Component, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { Experience, useExperience } from "./providers/experience";
 import { SmoothScroll } from "./providers/smooth-scroll";
@@ -22,27 +23,45 @@ import { cn } from "@/lib/cn";
 // WebGL nunca no servidor.
 const Scene = dynamic(() => import("./scene"), { ssr: false });
 
+/**
+ * Se o WebGL falhar (aceleracao de hardware desligada, driver problematico),
+ * a cena morre em silencio e a carta continua legivel do inicio ao fim.
+ */
+class PalcoSeguro extends Component<{ children: ReactNode }, { quebrou: boolean }> {
+  state = { quebrou: false };
+
+  static getDerivedStateFromError() {
+    return { quebrou: true };
+  }
+
+  render() {
+    return this.state.quebrou ? null : this.props.children;
+  }
+}
+
 function Palco() {
-  const { started, reduced, broken } = useExperience();
+  const { started, broken } = useExperience();
 
   return (
     <>
       {/* O estouro. Um clarao quente atravessa a tela inteira no instante em
           que ela quebra a casca, por cima de tudo, e some sozinho. */}
-      {broken && !reduced && (
+      {broken && (
         <div
           className="crack-flash pointer-events-none fixed inset-0 z-[45]"
           style={{
             background:
-              "radial-gradient(60% 45% at 50% 50%, rgb(255 214 170 / 0.85), rgb(255 150 120 / 0.35) 45%, transparent 75%)",
+              "radial-gradient(60% 45% at 50% 50%, rgb(255 240 224 / 0.9), rgb(255 205 170 / 0.28) 45%, transparent 72%)",
           }}
           aria-hidden
         />
       )}
 
       {/* A cena vive atras de tudo e atravessa a historia inteira. Ela acende
-          junto com a musica, quando a Sophya toca no portao. */}
-      {!reduced && (
+          junto com a musica, quando a Sophya toca no portao. Se o WebGL da
+          maquina estiver quebrado, o palco cai fora sozinho e a carta segue
+          inteira sem ele. */}
+      <PalcoSeguro>
         <div
           className={cn(
             "pointer-events-none fixed inset-0 z-0 transition-opacity duration-[2500ms]",
@@ -51,7 +70,7 @@ function Palco() {
         >
           <Scene />
         </div>
-      )}
+      </PalcoSeguro>
 
       <Atmosphere />
       <Ambient />

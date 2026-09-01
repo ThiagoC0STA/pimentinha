@@ -1,11 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { useEffect, useRef, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { useExperience } from "@/app/providers/experience";
 import { PointCloud } from "./point-cloud";
 import { Rig } from "./rig";
-import { Shell, Shockwave } from "./shell";
+import { Shell } from "./shell";
+
+/**
+ * Governanta de qualidade: mede o FPS real e rebaixa a cena quando a maquina
+ * nao acompanha (aceleracao de hardware desligada, GPU fraca, notebook em
+ * economia de energia). Melhor uma cena mais rala a 60fps do que a cena cheia
+ * a 12fps parecendo site quebrado.
+ */
+function Governanta({ onRebaixar }: { onRebaixar: () => void }) {
+  const frames = useRef(0);
+  const inicio = useRef(0);
+
+  useFrame((state) => {
+    frames.current += 1;
+    const t = state.clock.elapsedTime;
+    if (inicio.current === 0) inicio.current = t;
+    const janela = t - inicio.current;
+    if (janela >= 2) {
+      const fps = frames.current / janela;
+      frames.current = 0;
+      inicio.current = t;
+      if (fps < 27) onRebaixar();
+    }
+  });
+
+  return null;
+}
 
 /**
  * Uma unica cena atravessa o site inteiro. Ela nao e papel de parede: e a
@@ -32,13 +58,20 @@ export default function Scene() {
    * monta no cliente, entao ler `window` no estado inicial e seguro.
    */
   const [area] = useState(() => window.innerWidth * window.innerHeight);
-  const himCount = Math.round(Math.min(3200, Math.max(520, area / 760)));
+
+  // 0 = cena cheia; 1 = economia; 2 = minimo. A Governanta sobe isso quando o
+  // FPS medido fica abaixo de 27 por dois segundos.
+  const [nivel, setNivel] = useState(0);
+  const fator = nivel === 0 ? 1 : nivel === 1 ? 0.5 : 0.28;
+  const himCount = Math.round(Math.min(3200, Math.max(520, area / 760)) * fator);
   const herCount = Math.round(himCount * 0.45);
+  const detalheCasca = nivel === 0 ? (lowPower ? 3 : 5) : nivel === 1 ? 3 : 2;
+  const dprMax = nivel === 0 ? (lowPower ? 1.4 : 1.8) : nivel === 1 ? 1.2 : 1;
 
   return (
     <Canvas
       frameloop={visible ? "always" : "never"}
-      dpr={lowPower ? [1, 1.4] : [1, 1.8]}
+      dpr={[1, dprMax]}
       gl={{
         antialias: false,
         alpha: true,
@@ -47,6 +80,7 @@ export default function Scene() {
       camera={{ position: [0, 0, 30], fov: 48, near: 0.1, far: 200 }}
       style={{ pointerEvents: "none" }}
     >
+      {nivel < 2 && <Governanta onRebaixar={() => setNivel((n) => Math.min(2, n + 1))} />}
       <Rig frame={frame} />
 
       {/* Ele: frio, disperso, fechado. Esquenta quando ela quebra a casca. */}
@@ -72,8 +106,9 @@ export default function Scene() {
         fadeInPhase={0.9}
       />
 
-      <Shell frame={frame} detail={lowPower ? 3 : 5} />
-      <Shockwave frame={frame} />
+      {/* Sem Shockwave no estouro: o aro laranja atravessando a tela era
+          espetaculo demais. O corte de luz do flash 2D basta. */}
+      <Shell frame={frame} detail={detalheCasca} />
     </Canvas>
   );
 }

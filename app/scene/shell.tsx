@@ -97,7 +97,7 @@ const SHELL_VERT = /* glsl */ `
 
     // Respiracao lenta. Quando ela comeca a segurar, a casca treme.
     float breath = sin(uTime * 0.7) * 0.05;
-    float tremor = snoise(position * 3.0 + uTime * 6.0) * uCrack * 0.06;
+    float tremor = snoise(position * 1.3 + uTime * 3.5) * uCrack * 0.03;
     vec3 p = position * (1.0 + breath + tremor);
 
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
@@ -123,33 +123,27 @@ const SHELL_FRAG = /* glsl */ `
   void main() {
     float fres = pow(1.0 - abs(dot(normalize(vNormal), normalize(vView))), 2.2);
 
-    // Rachaduras: onde o ruido cruza o zero. Engrossam com uCrack, mas so ate
-    // virarem veias finas. Largura grande aqui transforma a casca inteira numa
-    // parede de lava, e o clima vira filme de catastrofe.
-    float n1 = snoise(vPos * 0.85);
-    float n2 = snoise(vPos * 2.1 + 11.0);
-    float w1 = 0.010 + uCrack * 0.032;
-    float w2 = 0.006 + uCrack * 0.018;
+    // Nada de veias de ruido aqui: em tela cheia aquilo parecia um cerebro.
+    // Enquanto ela segura, a esfera so faz tres coisas: treme (vertex),
+    // esquenta e acende por dentro num pulso de coracao. As rachaduras de
+    // verdade sao 2D, desenhadas a mao, e vivem no hold-to-break.
+    float pulse = 0.7 + 0.3 * sin(uTime * (2.0 + uCrack * 4.0));
 
-    float lines = 1.0 - smoothstep(0.0, w1, abs(n1));
-    lines += (1.0 - smoothstep(0.0, w2, abs(n2))) * smoothstep(0.55, 0.95, uCrack) * 0.6;
-    lines = clamp(lines, 0.0, 1.0) * uCrack;
+    vec3 rim = mix(uRim, uCrackColor, uCrack * 0.75);
+    float inner = pow(max(0.0, dot(normalize(vNormal), normalize(vView))), 3.0);
 
-    // Pulso percorrendo as fissuras enquanto ela segura.
-    float pulse = 0.65 + 0.35 * sin(uTime * 5.0 + vPos.y * 2.0);
-
-    vec3 col = uRim * fres * 0.5 + uCrackColor * lines * pulse * 1.1;
-    float alpha = (fres * 0.3 + lines * 0.9) * uOpacity;
+    vec3 col = rim * fres * (0.5 + uCrack * 0.3) + uCrackColor * inner * uCrack * pulse * 0.12;
+    float alpha = (fres * (0.3 + uCrack * 0.12) + inner * uCrack * pulse * 0.05) * uOpacity;
 
     // A quebra: a casca nao vira caco, ela se desintegra. Um campo de ruido
     // decide a ordem em que a superficie some, e a fronteira do que esta
     // sumindo queima como brasa por um instante.
     if (uDissolve > 0.001) {
-      float ordem = snoise(vPos * 1.9 + 7.0) * 0.5 + 0.5;
+      float ordem = snoise(vPos * 6.5 + 7.0) * 0.5 + 0.5;
       if (ordem < uDissolve) discard;
-      float brasa = 1.0 - smoothstep(uDissolve, uDissolve + 0.12, ordem);
-      col += uCrackColor * brasa * 2.2;
-      alpha = max(alpha, brasa * 0.85 * uOpacity);
+      float brasa = 1.0 - smoothstep(uDissolve, uDissolve + 0.05, ordem);
+      col += uCrackColor * brasa * 1.6;
+      alpha = max(alpha, brasa * 0.7 * uOpacity);
     }
 
     if (alpha < 0.002) discard;
@@ -188,10 +182,10 @@ export function Shell({ frame, detail = 4 }: { frame: Frame; detail?: number }) 
     u.uTime.value = state.clock.elapsedTime;
     u.uCrack.value = frame.crack;
     u.uDissolve.value = frame.dissolve;
-    // Durante a desintegracao quem apaga a casca e o proprio dissolve, nao a
-    // opacidade do provider (que ja teria zerado antes da queima aparecer).
-    u.uOpacity.value =
-      frame.dissolve > 0 ? 1 - frame.dissolve : frame.shell * (1 - frame.fade);
+    // O dissolve multiplica a opacidade que a casca JA tem. A versao que
+    // trocava a opacidade pelo dissolve fazia a casca ressuscitar no estouro
+    // so pra morrer de novo, bem no momento que deveria ser um corte limpo.
+    u.uOpacity.value = frame.shell * (1 - frame.fade) * (1 - frame.dissolve);
 
     const mesh = meshRef.current;
     if (mesh) {
