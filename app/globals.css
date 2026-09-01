@@ -1,26 +1,451 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   MEU FUTURO — sistema visual
+   A ideia central: a pagina tem TEMPERATURA. Ela nasce fria (azul aco, tudo
+   distante) e esquenta quando a Sophya quebra a casca no ato 4. As cores
+   abaixo sao reescritas por JS (providers/experience.tsx) a cada frame,
+   interpolando entre a paleta fria e a quente conforme o warmth (0 -> 1).
+   ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --warmth: 0;
+
+  /* Defaults = paleta fria. O provider sobrescreve em runtime. */
+  --c-bg: rgb(6 8 12);
+  --c-surface: rgb(12 15 21);
+  --c-fg: rgb(178 189 205);
+  --c-muted: rgb(103 116 136);
+  --c-accent: rgb(125 148 184);
+  --c-glow: rgb(90 120 170);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-expo: cubic-bezier(0.87, 0, 0.13, 1);
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Progresso local da secao visivel (0 -> 1), escrito por useSectionProgress */
+  --sp: 0;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--c-bg);
+  --color-surface: var(--c-surface);
+  --color-fg: var(--c-fg);
+  --color-muted: var(--c-muted);
+  --color-accent: var(--c-accent);
+  --color-glow: var(--c-glow);
+  --font-sans: var(--font-sans-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display-serif), ui-serif, Georgia, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--c-bg);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--c-bg);
+  color: var(--c-fg);
+  font-family: var(--font-sans-body), system-ui, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--c-accent);
+  color: rgb(8 6 6);
+}
+
+/* Sem scrollbar quebrando a imersao */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+html {
+  scrollbar-width: none;
+}
+
+/* ==========================================================================
+   Tipografia
+   ========================================================================== */
+
+.font-display {
+  font-family: var(--font-display-serif), ui-serif, Georgia, serif;
+}
+
+.type-hero {
+  font-size: clamp(3.2rem, 17vw, 9rem);
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+}
+
+.type-act {
+  font-size: clamp(1.8rem, 7.4vw, 4.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.type-line {
+  font-size: clamp(1.15rem, 4.8vw, 2rem);
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+}
+
+.type-small {
+  font-size: clamp(0.92rem, 3.6vw, 1.1rem);
+  line-height: 1.65;
+}
+
+.type-label {
+  font-size: clamp(0.62rem, 2.8vw, 0.72rem);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+/* A cena passa atras do texto o tempo todo. Uma sombra da cor do fundo
+   garante que a carta continue legivel por cima de qualquer particula. */
+.type-hero,
+.type-act,
+.type-line,
+.type-small {
+  text-shadow:
+    0 1px 22px color-mix(in srgb, var(--c-bg) 88%, transparent),
+    0 0 60px color-mix(in srgb, var(--c-bg) 65%, transparent);
+}
+
+/* ==========================================================================
+   Reveal — IntersectionObserver + CSS, sem biblioteca de animacao
+   ========================================================================== */
+
+.rv {
+  opacity: 0;
+  transform: translateY(26px);
+  filter: blur(6px);
+  transition:
+    opacity 0.9s var(--ease-out-expo),
+    transform 0.9s var(--ease-out-expo),
+    filter 0.9s var(--ease-out-expo);
+  transition-delay: var(--rv-delay, 0ms);
+  will-change: opacity, transform, filter;
+}
+.rv.is-in {
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+}
+
+/* Mascara: a linha sobe de dentro de um recorte */
+.rv-mask {
+  overflow: hidden;
+  display: block;
+}
+.rv-mask > * {
+  display: block;
+  transform: translateY(110%);
+  transition: transform 1.1s var(--ease-out-expo);
+  transition-delay: var(--rv-delay, 0ms);
+  will-change: transform;
+}
+.rv-mask.is-in > * {
+  transform: none;
+}
+
+/* Palavra por palavra */
+.rv-words .w {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(18px) rotate(2deg);
+  filter: blur(8px);
+  transition:
+    opacity 0.85s var(--ease-out-expo),
+    transform 0.85s var(--ease-out-expo),
+    filter 0.85s var(--ease-out-expo);
+  transition-delay: calc(var(--rv-delay, 0ms) + var(--i, 0) * var(--rv-stagger, 55ms));
+  will-change: opacity, transform, filter;
+}
+.rv-words.is-in .w {
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+}
+
+/* Letra por letra, pros momentos de mais peso */
+.rv-chars .ch {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.4em) scale(0.9);
+  transition:
+    opacity 0.7s var(--ease-out-expo),
+    transform 0.7s var(--ease-out-expo);
+  transition-delay: calc(var(--rv-delay, 0ms) + var(--i, 0) * var(--rv-stagger, 34ms));
+}
+.rv-chars.is-in .ch {
+  opacity: 1;
+  transform: none;
+}
+
+.rv-scale {
+  opacity: 0;
+  transform: scale(0.88);
+  transition:
+    opacity 1s var(--ease-out-expo),
+    transform 1.2s var(--ease-out-expo);
+  transition-delay: var(--rv-delay, 0ms);
+}
+.rv-scale.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ==========================================================================
+   Movimento ambiente
+   ========================================================================== */
+
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0) rotate(var(--rot, 0deg)); }
+  50% { transform: translateY(-12px) rotate(calc(var(--rot, 0deg) + 0.6deg)); }
+}
+.float-soft {
+  animation: float-soft var(--float-dur, 7s) ease-in-out infinite;
+  animation-delay: var(--float-delay, 0s);
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+.breathe {
+  animation: breathe 4.5s ease-in-out infinite;
+}
+
+@keyframes cue-bounce {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(9px); opacity: 1; }
+}
+.cue-bounce {
+  animation: cue-bounce 2.2s var(--ease-soft) infinite;
+}
+
+@keyframes ring-out {
+  0% { transform: scale(0.7); opacity: 0.65; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+.ring-out {
+  animation: ring-out 3.4s var(--ease-out-expo) infinite;
+  animation-delay: var(--ring-delay, 0s);
+}
+
+@keyframes shimmer-sweep {
+  from { transform: translateX(-120%); }
+  to { transform: translateX(220%); }
+}
+.shimmer-sweep {
+  animation: shimmer-sweep 3.6s var(--ease-soft) infinite;
+}
+
+@keyframes marquee-left {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+.marquee-track {
+  animation: marquee-left var(--marquee-dur, 60s) linear infinite;
+  will-change: transform;
+}
+
+@keyframes typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
+  30% { transform: translateY(-5px); opacity: 1; }
+}
+.typing-dot {
+  animation: typing-dot 1.3s ease-in-out infinite;
+  animation-delay: var(--dot-delay, 0s);
+}
+
+@keyframes bubble-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+.bubble-in {
+  animation: bubble-in 0.6s var(--ease-out-expo) both;
+  animation-delay: var(--bubble-delay, 0s);
+}
+
+@keyframes flicker-in {
+  0% { opacity: 0; }
+  40% { opacity: 0.5; }
+  50% { opacity: 0.15; }
+  70% { opacity: 0.9; }
+  80% { opacity: 0.35; }
+  100% { opacity: 1; }
+}
+.flicker-in {
+  animation: flicker-in 1.8s var(--ease-soft) both;
+  animation-delay: var(--flicker-delay, 0s);
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+.twinkle {
+  animation: twinkle var(--tw-dur, 3s) ease-in-out infinite;
+  animation-delay: var(--tw-delay, 0s);
+}
+
+/* ==========================================================================
+   Traco SVG desenhando
+   ========================================================================== */
+
+.draw-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 2.4s var(--ease-soft);
+  transition-delay: var(--rv-delay, 0ms);
+}
+.is-in .draw-path {
+  stroke-dashoffset: 0;
+}
+
+/* Versao dirigida pelo scroll: o traco acompanha o dedo dela */
+.draw-scroll {
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - var(--sp, 0));
+}
+
+/* Deriva lateral dirigida pelo scroll. Usada no ato em que ele empurra ela
+   pra longe: as duas frases se afastam uma da outra conforme ela desce. */
+.drift-left {
+  transform: translate3d(calc(var(--sp, 0) * -7vw), 0, 0);
+}
+.drift-right {
+  transform: translate3d(calc(var(--sp, 0) * 7vw), 0, 0);
+}
+
+/* ==========================================================================
+   Polaroid
+   ========================================================================== */
+
+.polaroid {
+  background: linear-gradient(180deg, rgb(255 252 248 / 0.96), rgb(243 236 230 / 0.92));
+  padding: 9px 9px 38px;
+  border-radius: 3px;
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.4) inset,
+    0 26px 60px -20px rgb(0 0 0 / 0.85),
+    0 6px 18px -8px rgb(0 0 0 / 0.6);
+  transform: rotate(var(--rot, 0deg));
+  transition: transform 0.8s var(--ease-out-expo);
+}
+.polaroid img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.03) contrast(1.02);
+}
+
+/* Tilt 3D por CSS var (mousemove escreve, GPU interpola) */
+.tilt {
+  transform: perspective(1100px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)) translateZ(0);
+  transition: transform 0.5s var(--ease-out-expo);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* ==========================================================================
+   Grao + vinheta
+   ========================================================================== */
+
+.grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.075'/%3E%3C/svg%3E");
+}
+
+.vignette {
+  background: radial-gradient(
+    ellipse at 50% 45%,
+    transparent 30%,
+    color-mix(in srgb, var(--c-bg) 55%, transparent) 68%,
+    var(--c-bg) 100%
+  );
+}
+
+/* ==========================================================================
+   Hold to break (ato 4)
+   ========================================================================== */
+
+@keyframes hold-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+.hold-pulse {
+  animation: hold-pulse 2.6s var(--ease-soft) infinite;
+}
+
+@keyframes crack-flash {
+  0% { opacity: 0; }
+  8% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.crack-flash {
+  animation: crack-flash 1.6s var(--ease-out-expo) forwards;
+}
+
+/* ==========================================================================
+   Estados globais
+   ========================================================================== */
+
+body[data-locked="true"] {
+  overflow: hidden;
+  height: 100dvh;
+}
+
+.cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--c-fg);
+  mix-blend-mode: difference;
+  pointer-events: none;
+  z-index: 90;
+  transform: translate3d(var(--cx, -50px), var(--cy, -50px), 0) translate(-50%, -50%) scale(var(--cs, 1));
+  transition: transform 0.12s linear, opacity 0.4s ease;
+  will-change: transform;
+}
+
+@media (pointer: coarse) {
+  .cursor-dot {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Acessibilidade
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .rv,
+  .rv-words .w,
+  .rv-chars .ch,
+  .rv-scale {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  .rv-mask > * {
+    transform: none !important;
+  }
+  .draw-path {
+    stroke-dashoffset: 0 !important;
+  }
 }
