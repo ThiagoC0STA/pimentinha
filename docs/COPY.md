@@ -66,15 +66,13 @@ Depois:
 
 ## Ato 3 — Eu tentei te afastar · `app/acts/a3-afastar.tsx`
 
-As três frases derivam para lados opostos conforme ela rola: o scroll dela faz
+As duas frases derivam para lados opostos conforme ela rola: o scroll dela faz
 o gesto de empurrar.
 
 > Uma vez.
 >
 > E depois de novo.
->
-> E ainda teve uma terceira.
-> Três vezes. E você continuou aí.
+> Duas vezes. E você continuou aí.
 >
 > Não era você.
 > Era eu com medo de gostar de alguém outra vez.

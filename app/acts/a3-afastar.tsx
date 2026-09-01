@@ -9,7 +9,6 @@ export function Afastar() {
   // empurrar alguem pra longe, feito com o scroll dela.
   const primeira = useSectionProgress<HTMLDivElement>();
   const segunda = useSectionProgress<HTMLDivElement>();
-  const terceira = useSectionProgress<HTMLDivElement>();
 
   return (
     <Act index={3} full={false}>
@@ -28,7 +27,7 @@ export function Afastar() {
           </div>
         </Beat>
 
-        <Beat height="45vh" className="items-end text-right">
+        <Beat height="55vh" className="items-end text-right">
           <div ref={segunda}>
             <RevealChars
               text="E depois de novo."
@@ -36,18 +35,8 @@ export function Afastar() {
               stagger={45}
             />
           </div>
-        </Beat>
-
-        <Beat height="50vh">
-          <div ref={terceira}>
-            <RevealChars
-              text="E ainda teve uma terceira."
-              className="type-act font-display drift-left"
-              stagger={40}
-            />
-          </div>
-          <Reveal delay={1400}>
-            <p className="type-small mt-8 text-muted">Três vezes. E você continuou aí.</p>
+          <Reveal delay={1500}>
+            <p className="type-small mt-8 text-muted">Duas vezes. E você continuou aí.</p>
           </Reveal>
         </Beat>
 

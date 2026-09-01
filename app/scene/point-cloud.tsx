@@ -55,8 +55,9 @@ const VERT = /* glsl */ `
     pos.y += cos(uTime * 0.19 + aSeed * 17.0) * wob;
     pos.z += sin(uTime * 0.15 + aSeed * 31.0) * wob * 0.8;
 
-    // O estouro da casca empurra tudo pra fora por um instante.
-    pos += normalize(pos + 0.0001) * uBurst * (2.5 + aSeed * 9.0);
+    // O estouro da casca empurra tudo pra fora por um instante, de leve:
+    // a onda passa pela nuvem, nao explode a nuvem.
+    pos += normalize(pos + 0.0001) * uBurst * (1.1 + aSeed * 3.4);
 
     // Sopro do ponteiro: a nuvem sente o dedo dela passando, de leve.
     vec2 toPointer = pos.xy - uPointer * 12.0;

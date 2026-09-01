@@ -97,7 +97,7 @@ const SHELL_VERT = /* glsl */ `
 
     // Respiracao lenta. Quando ela comeca a segurar, a casca treme.
     float breath = sin(uTime * 0.7) * 0.05;
-    float tremor = snoise(position * 3.0 + uTime * 6.0) * uCrack * 0.16;
+    float tremor = snoise(position * 3.0 + uTime * 6.0) * uCrack * 0.06;
     vec3 p = position * (1.0 + breath + tremor);
 
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
@@ -109,6 +109,7 @@ const SHELL_VERT = /* glsl */ `
 const SHELL_FRAG = /* glsl */ `
   uniform float uTime;
   uniform float uCrack;
+  uniform float uDissolve;
   uniform float uOpacity;
   uniform vec3 uRim;
   uniform vec3 uCrackColor;
@@ -122,21 +123,34 @@ const SHELL_FRAG = /* glsl */ `
   void main() {
     float fres = pow(1.0 - abs(dot(normalize(vNormal), normalize(vView))), 2.2);
 
-    // Rachaduras: onde o ruido cruza o zero. Engrossam com uCrack.
-    float n1 = snoise(vPos * 1.25);
-    float n2 = snoise(vPos * 2.9 + 11.0);
-    float w1 = 0.012 + uCrack * 0.075;
-    float w2 = 0.008 + uCrack * 0.05;
+    // Rachaduras: onde o ruido cruza o zero. Engrossam com uCrack, mas so ate
+    // virarem veias finas. Largura grande aqui transforma a casca inteira numa
+    // parede de lava, e o clima vira filme de catastrofe.
+    float n1 = snoise(vPos * 0.85);
+    float n2 = snoise(vPos * 2.1 + 11.0);
+    float w1 = 0.010 + uCrack * 0.032;
+    float w2 = 0.006 + uCrack * 0.018;
 
     float lines = 1.0 - smoothstep(0.0, w1, abs(n1));
-    lines += (1.0 - smoothstep(0.0, w2, abs(n2))) * smoothstep(0.35, 0.9, uCrack);
+    lines += (1.0 - smoothstep(0.0, w2, abs(n2))) * smoothstep(0.55, 0.95, uCrack) * 0.6;
     lines = clamp(lines, 0.0, 1.0) * uCrack;
 
     // Pulso percorrendo as fissuras enquanto ela segura.
     float pulse = 0.65 + 0.35 * sin(uTime * 5.0 + vPos.y * 2.0);
 
-    vec3 col = uRim * fres * 0.5 + uCrackColor * lines * pulse * 1.35;
+    vec3 col = uRim * fres * 0.5 + uCrackColor * lines * pulse * 1.1;
     float alpha = (fres * 0.3 + lines * 0.9) * uOpacity;
+
+    // A quebra: a casca nao vira caco, ela se desintegra. Um campo de ruido
+    // decide a ordem em que a superficie some, e a fronteira do que esta
+    // sumindo queima como brasa por um instante.
+    if (uDissolve > 0.001) {
+      float ordem = snoise(vPos * 1.9 + 7.0) * 0.5 + 0.5;
+      if (ordem < uDissolve) discard;
+      float brasa = 1.0 - smoothstep(uDissolve, uDissolve + 0.12, ordem);
+      col += uCrackColor * brasa * 2.2;
+      alpha = max(alpha, brasa * 0.85 * uOpacity);
+    }
 
     if (alpha < 0.002) discard;
     gl_FragColor = vec4(col, alpha);
@@ -154,10 +168,11 @@ export function Shell({ frame, detail = 4 }: { frame: Frame; detail?: number }) 
         fragmentShader: SHELL_FRAG,
         transparent: true,
         depthWrite: false,
-        side: THREE.DoubleSide,
+        side: THREE.FrontSide,
         uniforms: {
           uTime: { value: 0 },
           uCrack: { value: 0 },
+          uDissolve: { value: 0 },
           uOpacity: { value: 0 },
           uRim: { value: new THREE.Color("#7fa0cc") },
           uCrackColor: { value: new THREE.Color("#ffb066") },
@@ -172,15 +187,18 @@ export function Shell({ frame, detail = 4 }: { frame: Frame; detail?: number }) 
     const u = material.uniforms;
     u.uTime.value = state.clock.elapsedTime;
     u.uCrack.value = frame.crack;
-    u.uOpacity.value = frame.shell * (1 - frame.fade);
+    u.uDissolve.value = frame.dissolve;
+    // Durante a desintegracao quem apaga a casca e o proprio dissolve, nao a
+    // opacidade do provider (que ja teria zerado antes da queima aparecer).
+    u.uOpacity.value =
+      frame.dissolve > 0 ? 1 - frame.dissolve : frame.shell * (1 - frame.fade);
 
     const mesh = meshRef.current;
     if (mesh) {
       mesh.rotation.y = state.clock.elapsedTime * 0.06;
       mesh.rotation.x = Math.sin(state.clock.elapsedTime * 0.13) * 0.12;
-      // No estouro, a casca infla um instante antes de sumir.
-      const s = 1 + frame.burst * 0.55;
-      mesh.scale.setScalar(s);
+      // Nada de inflar no estouro: um suspiro minimo e a desintegracao fala.
+      mesh.scale.setScalar(1 + frame.burst * 0.06);
       mesh.visible = u.uOpacity.value > 0.004;
     }
   });
@@ -193,62 +211,11 @@ export function Shell({ frame, detail = 4 }: { frame: Frame; detail?: number }) 
 }
 
 /* --------------------------------------------------------------------------
-   Estilhacos
-   -------------------------------------------------------------------------- */
-
-export function Shards({ frame, count = 56 }: { frame: Frame; count?: number }) {
-  const ref = useRef<THREE.InstancedMesh>(null);
-  const dummy = useMemo(() => new THREE.Object3D(), []);
-
-  const dirs = useMemo(() => {
-    const out: THREE.Vector3[] = [];
-    for (let i = 0; i < count; i++) {
-      // Distribuicao esferica uniforme (espiral de Fibonacci).
-      const y = 1 - (i / (count - 1)) * 2;
-      const r = Math.sqrt(Math.max(0, 1 - y * y));
-      const theta = i * 2.399963;
-      out.push(new THREE.Vector3(Math.cos(theta) * r, y, Math.sin(theta) * r));
-    }
-    return out;
-  }, [count]);
-
-  useFrame(() => {
-    const mesh = ref.current;
-    if (!mesh) return;
-
-    const b = frame.burst;
-    mesh.visible = b > 0.01;
-    if (!mesh.visible) return;
-
-    const p = 1 - b; // 0 no estouro, 1 quando terminou
-    for (let i = 0; i < count; i++) {
-      const d = dirs[i];
-      const dist = 4.75 + p * (14 + (i % 7) * 2.2);
-      dummy.position.set(d.x * dist, d.y * dist * 0.85, d.z * dist);
-      dummy.rotation.set(p * (3 + i * 0.21), p * (2.4 + i * 0.17), p * 1.8);
-      dummy.scale.setScalar(Math.max(0.001, b * 0.34));
-      dummy.updateMatrix();
-      mesh.setMatrixAt(i, dummy.matrix);
-    }
-    mesh.instanceMatrix.needsUpdate = true;
-  });
-
-  return (
-    <instancedMesh ref={ref} args={[undefined, undefined, count]} frustumCulled={false}>
-      <tetrahedronGeometry args={[0.62, 0]} />
-      <meshBasicMaterial
-        color="#ffd0a0"
-        transparent
-        opacity={0.9}
-        blending={THREE.AdditiveBlending}
-        depthWrite={false}
-      />
-    </instancedMesh>
-  );
-}
-
-/* --------------------------------------------------------------------------
    Onda de choque
+
+   Um unico anel fino atravessando a cena. A primeira versao tinha tambem
+   tetraedros voando como cacos, e ficou feio de um jeito que so aparece
+   olhando: geometria chapada nao convence como estilhaco. Saiu.
    -------------------------------------------------------------------------- */
 
 const WAVE_FRAG = /* glsl */ `
@@ -258,9 +225,9 @@ const WAVE_FRAG = /* glsl */ `
 
   void main() {
     float d = length(vUv - 0.5) * 2.0;
-    float ring = smoothstep(0.72, 0.98, d) * (1.0 - smoothstep(0.98, 1.0, d));
-    float glow = smoothstep(1.0, 0.4, d) * 0.18;
-    float a = (ring + glow) * uOpacity;
+    // Anel fino, sem miolo: um sopro atravessando a cena, nao uma explosao.
+    float ring = smoothstep(0.88, 0.97, d) * (1.0 - smoothstep(0.97, 1.0, d));
+    float a = ring * uOpacity * 0.6;
     if (a < 0.003) discard;
     gl_FragColor = vec4(uColor, a);
   }

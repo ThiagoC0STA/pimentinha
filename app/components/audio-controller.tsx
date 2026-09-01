@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useExperience } from "@/app/providers/experience";
 import { MUSICA, TOTAL_ATOS } from "@/lib/constants";
 import { cn } from "@/lib/cn";
@@ -8,18 +8,8 @@ import { cn } from "@/lib/cn";
 const VOLUME_NORMAL = 0.72;
 /** No ato da pergunta a musica recua pra frase acontecer quase no silencio. */
 const VOLUME_FINAL = 0.16;
-
-/**
- * Velocidades de fade, em volume por segundo.
- *
- * A saida e rapida de proposito. Fade cruzado longo soa como duas musicas
- * tocando ao mesmo tempo, que foi exatamente o que aconteceu na primeira
- * versao: a trilha antiga levava quase sete segundos pra sumir.
- */
-const SAIDA_POR_SEG = 2.2; // ~0.35s pra zerar
-const ENTRADA_POR_SEG = 0.5; // ~1.5s pra encher
-/** Respiro entre uma trilha e outra: o estouro acontece quase no silencio. */
-const ATRASO_ENTRADA_MS = 420;
+/** Velocidade dos unicos fades que restaram: entrada no portao e duck final. */
+const FADE_POR_SEG = 0.55;
 
 type Trilha = "fria" | "quente";
 
@@ -30,63 +20,57 @@ const mover = (atual: number, destino: number, passo: number) => {
 };
 
 /**
- * Duas trilhas com troca no momento exato da quebra.
+ * Duas trilhas, uma regra: em qualquer instante existe UMA trilha certa.
  *
- * A fria toca enquanto ele ainda esta fechado. Quando ela quebra a casca, a
- * fria some em menos de meio segundo, tem um respiro, e a musica dela entra do
- * comeco. Se o arquivo da trilha fria nao existir, o site toca so a musica
- * dela, do inicio ao fim.
+ * Nada aqui depende de eventos chegarem na ordem esperada. Um reconciliador
+ * roda a cada frame e compara o mundo com o que ele deveria ser: trilha errada
+ * tocando e pausada na hora, trilha certa parada e religada, muted e espelhado
+ * nos dois elementos. Estado inconsistente (hot reload, aba restaurada,
+ * interrupcao do sistema) dura no maximo um frame.
  *
- * Nenhuma das duas pode parar sozinha: um vigia por frame religa qualquer
- * trilha que devia estar tocando e nao esta. Ninguem vai pedir alguem em
- * namoro no silencio por causa de um `ended` que nao disparou.
+ * A troca na quebra e um corte seco, sem crossfade: a fria para no instante do
+ * estouro e a musica dela ja entra tocando.
  */
 export function AudioController() {
   const { started, act, broken } = useExperience();
   const friaRef = useRef<HTMLAudioElement>(null);
   const quenteRef = useRef<HTMLAudioElement>(null);
-  const ativaRef = useRef<Trilha>("fria");
-  const deveTocarRef = useRef<Record<Trilha, boolean>>({ fria: false, quente: false });
   const [temFria, setTemFria] = useState(true);
   const [muted, setMuted] = useState(false);
   const [tocando, setTocando] = useState(false);
 
+  // O reconciliador le daqui; efeitos so escrevem.
+  const mundoRef = useRef({ started, broken, temFria, act });
+  useEffect(() => {
+    mundoRef.current = { started, broken, temFria, act };
+  }, [started, broken, temFria, act]);
+
+  /** Ja demos play na trilha certa alguma vez? (gesto ja aconteceu) */
+  const liberadoRef = useRef(false);
+  /** A quente ja foi resetada pro inicio na hora da quebra? */
+  const quenteResetadaRef = useRef(false);
+
   const inicioDe = (t: Trilha) => (t === "fria" ? MUSICA.fria.inicio : MUSICA.quente.inicio);
 
-  const tocar = useCallback((audio: HTMLAudioElement, trilha: Trilha) => {
-    deveTocarRef.current[trilha] = true;
-    audio.play().catch(() => {});
-  }, []);
-
-  /**
-   * O play so pode nascer do toque dela no portao: navegador nenhum deixa
-   * audio comecar sozinho, e ainda bem.
-   *
-   * `broken` NAO entra nas dependencias de proposito. Quando entrava, esse
-   * efeito rodava junto com a quebra e tomava a troca pra si: pulava o respiro
-   * de 420ms e, pior, deixava a trilha fria tocando pra sempre em volume zero,
-   * porque quem marca ela como encerrada e o efeito de baixo.
-   */
+  // O primeiro play nasce do toque dela no portao: navegador nenhum deixa
+  // audio comecar sozinho. Aqui tambem se destrava a segunda trilha no mesmo
+  // gesto (play + pause imediato), senao o play dela na hora da quebra seria
+  // bloqueado por falta de interacao recente.
   useEffect(() => {
-    if (!started) return;
+    if (!started || liberadoRef.current) return;
+    liberadoRef.current = true;
+
     const fria = friaRef.current;
     const quente = quenteRef.current;
+    const comecaQuente = broken || !temFria;
 
-    if (temFria && fria) {
+    if (!comecaQuente && fria) {
       fria.volume = 0;
-      // Pula a introducao: a trilha do antes entra direto no ponto certo.
       fria.currentTime = MUSICA.fria.inicio;
-      ativaRef.current = "fria";
       fria
         .play()
-        .then(() => {
-          deveTocarRef.current.fria = true;
-          setTocando(true);
-        })
+        .then(() => setTocando(true))
         .catch(() => setTemFria(false));
-
-      // Destrava a segunda trilha no mesmo gesto. Sem isso, o play dela na
-      // hora da quebra seria bloqueado por falta de interacao recente.
       if (quente) {
         quente.volume = 0;
         quente
@@ -97,56 +81,62 @@ export function AudioController() {
           })
           .catch(() => {});
       }
-      return;
-    }
-
-    if (quente && ativaRef.current !== "quente") {
+    } else if (quente) {
+      quenteResetadaRef.current = true;
       quente.volume = 0;
       quente.currentTime = MUSICA.quente.inicio;
-      ativaRef.current = "quente";
       quente
         .play()
-        .then(() => {
-          deveTocarRef.current.quente = true;
-          setTocando(true);
-        })
+        .then(() => setTocando(true))
         .catch(() => setTocando(false));
     }
-  }, [started, temFria]);
+  }, [started, broken, temFria]);
 
-  // A casca quebrou: a fria cai na hora, e a musica dela entra logo depois.
+  // A quebra: corte seco. A fria morre neste instante e a dela entra do
+  // comeco, ja no volume cheio. Sem crossfade: duas musicas ao mesmo tempo,
+  // mesmo por dois segundos, soa como defeito.
   useEffect(() => {
     if (!broken || !started) return;
-    if (ativaRef.current === "quente") return;
+    const fria = friaRef.current;
+    const quente = quenteRef.current;
 
-    ativaRef.current = "quente";
-    deveTocarRef.current.fria = false; // para de religar a antiga
-
-    const t = setTimeout(() => {
-      const quente = quenteRef.current;
-      if (!quente) return;
+    if (fria) {
+      fria.pause();
+      fria.volume = 0;
+    }
+    if (quente && !quenteResetadaRef.current) {
+      quenteResetadaRef.current = true;
       quente.currentTime = MUSICA.quente.inicio;
-      quente.volume = 0;
-      tocar(quente, "quente");
+      quente.volume = act >= TOTAL_ATOS - 1 ? VOLUME_FINAL : VOLUME_NORMAL;
+      quente.play().catch(() => {});
       setTocando(true);
-    }, ATRASO_ENTRADA_MS);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [broken, started]);
 
-    return () => clearTimeout(t);
-  }, [broken, started, tocar]);
+  // Mute instantaneo, na propriedade do elemento. Nao passa por fade nenhum.
+  useEffect(() => {
+    for (const audio of [friaRef.current, quenteRef.current]) {
+      if (audio) audio.muted = muted;
+    }
+  }, [muted]);
 
-  // Um loop so cuida de tudo: fade de entrada, corte da troca, duck do ato
-  // final, mute, e o vigia que nunca deixa a musica morrer.
+  // O reconciliador.
   useEffect(() => {
     let raf = 0;
     let anterior = performance.now();
 
     const tick = (agora: number) => {
       raf = requestAnimationFrame(tick);
-      // Capado: se a aba ficou em segundo plano, o salto nao vira um corte.
       const dt = Math.min(0.1, (agora - anterior) / 1000);
       anterior = agora;
 
-      const alvo = muted ? 0 : act >= TOTAL_ATOS - 1 ? VOLUME_FINAL : VOLUME_NORMAL;
+      const mundo = mundoRef.current;
+      if (!mundo.started || !liberadoRef.current) return;
+
+      const certa: Trilha = mundo.broken || !mundo.temFria ? "quente" : "fria";
+      const alvo = mundo.act >= TOTAL_ATOS - 1 ? VOLUME_FINAL : VOLUME_NORMAL;
+
       const trilhas: [HTMLAudioElement | null, Trilha][] = [
         [friaRef.current, "fria"],
         [quenteRef.current, "quente"],
@@ -154,55 +144,45 @@ export function AudioController() {
 
       for (const [audio, trilha] of trilhas) {
         if (!audio) continue;
-        const ativa = ativaRef.current === trilha;
-        const destino = ativa ? alvo : 0;
-        const deveTocar = deveTocarRef.current[trilha];
 
-        // Volume so sobe com a trilha realmente tocando; descer pode sempre.
-        if (destino < audio.volume || !audio.paused) {
-          const taxa = destino > audio.volume ? ENTRADA_POR_SEG : SAIDA_POR_SEG;
-          audio.volume = mover(audio.volume, destino, taxa * dt);
+        if (trilha !== certa) {
+          // Trilha errada NUNCA fica tocando, venha o estado de onde vier.
+          if (!audio.paused) audio.pause();
+          if (audio.volume !== 0) audio.volume = 0;
+          continue;
         }
 
-        // Vigia: se essa trilha devia estar tocando e parou (fim do arquivo,
-        // interrupcao do sistema, `ended` que nao disparou), religa do ponto
-        // de entrada. E o seguro contra ficar sem musica na hora do pedido.
-        if (deveTocar && audio.paused) {
+        // Entrada do portao e duck do final: os unicos fades que existem.
+        audio.volume = mover(audio.volume, alvo, FADE_POR_SEG * dt);
+
+        // Vigia do repeat: se a trilha certa parou (fim de arquivo, `ended`
+        // perdido, interrupcao), religa do ponto de entrada. Ninguem pede
+        // alguem em namoro no silencio.
+        if (audio.paused) {
           const fim = audio.duration && audio.currentTime >= audio.duration - 0.25;
           if (fim || audio.currentTime < inicioDe(trilha)) {
             audio.currentTime = inicioDe(trilha);
           }
           audio.play().catch(() => {});
         }
-
-        // A trilha que saiu de cena para de vez quando termina de sumir.
-        if (!deveTocar && !audio.paused && audio.volume <= 0.002) audio.pause();
       }
     };
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [muted, act]);
+  }, []);
 
   return (
     <>
       {/* Sem `loop` nativo na fria: ele voltaria pro segundo zero, e a
-          introducao e justamente o que a gente esta pulando. O onEnded repete
-          a partir do ponto de entrada, e o vigia do loop cobre o resto. */}
+          introducao e justamente o que a gente pula. O vigia religa dos 21s. */}
       <audio
         ref={friaRef}
         src={MUSICA.fria.src}
         preload="auto"
         playsInline
-        onEnded={(e) => {
-          const a = e.currentTarget;
-          if (!deveTocarRef.current.fria) return;
-          a.currentTime = MUSICA.fria.inicio;
-          a.play().catch(() => {});
-        }}
         onError={() => setTemFria(false)}
       />
-      {/* A dela repete inteira, do comeco. Loop nativo e vigia, os dois. */}
       <audio ref={quenteRef} src={MUSICA.quente.src} loop preload="auto" playsInline />
 
       <button

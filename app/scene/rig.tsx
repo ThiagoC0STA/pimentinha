@@ -16,7 +16,7 @@ const POS: [number, number, number][] = [
   [0, 1.6, 25], // 1 antes de voce
   [2.2, 0.8, 18], // 2 voce chegou
   [1.2, 0, 13.5], // 3 eu tentei te afastar
-  [0, 0, 11], // 4 a quebra, colado na casca
+  [0, 0, 14.5], // 4 a quebra, perto sem engolir a tela
   [0, 0, 20], // 5 quem e voce
   [0, 0.5, 22], // 6 sem perceber
   [0, 2.4, 23], // 7 cem quilometros
@@ -65,11 +65,11 @@ export function Rig({ frame }: { frame: Frame }) {
     target.x += frame.pointerX * 1.8;
     target.y += frame.pointerY * 1.1;
 
-    // Tranco no instante da quebra.
+    // Tranco no instante da quebra: um tremor curto, nao um terremoto.
     const shake = frame.burst * frame.burst;
     if (shake > 0.001) {
-      target.x += (Math.random() - 0.5) * shake * 1.6;
-      target.y += (Math.random() - 0.5) * shake * 1.6;
+      target.x += (Math.random() - 0.5) * shake * 0.7;
+      target.y += (Math.random() - 0.5) * shake * 0.7;
     }
 
     const ease = 1 - Math.pow(0.001, delta);

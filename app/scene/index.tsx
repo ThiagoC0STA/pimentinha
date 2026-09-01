@@ -5,7 +5,7 @@ import { Canvas } from "@react-three/fiber";
 import { useExperience } from "@/app/providers/experience";
 import { PointCloud } from "./point-cloud";
 import { Rig } from "./rig";
-import { Shell, Shards, Shockwave } from "./shell";
+import { Shell, Shockwave } from "./shell";
 
 /**
  * Uma unica cena atravessa o site inteiro. Ela nao e papel de parede: e a
@@ -73,7 +73,6 @@ export default function Scene() {
       />
 
       <Shell frame={frame} detail={lowPower ? 3 : 5} />
-      <Shards frame={frame} count={lowPower ? 64 : 96} />
       <Shockwave frame={frame} />
     </Canvas>
   );

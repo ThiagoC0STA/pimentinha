@@ -40,6 +40,8 @@ export interface Frame {
   crack: number;
   /** 1 no instante da quebra, decaindo em ~2.5s. Serve pra shockwave e shake. */
   burst: number;
+  /** Desintegracao da casca: 0 inteira, 1 dissolvida. Sobe em ~1s pos-quebra. */
+  dissolve: number;
   /** Fade final: 1 = tudo apagado no ato da pergunta. */
   fade: number;
   pointerX: number;
@@ -131,6 +133,7 @@ export function Experience({ children }: { children: ReactNode }) {
     shell: 0,
     crack: 0,
     burst: 0,
+    dissolve: 0,
     fade: 0,
     pointerX: 0,
     pointerY: 0,
@@ -377,6 +380,11 @@ export function Experience({ children }: { children: ReactNode }) {
       // Impulso da quebra: 1 no estouro, some em ~2.5s.
       f.burst = brokenRef.current
         ? Math.max(0, 1 - (now - brokenAtRef.current) / 2500)
+        : 0;
+
+      // A casca nao explode em cacos: ela se desintegra em ~1.1s.
+      f.dissolve = brokenRef.current
+        ? Math.min(1, (now - brokenAtRef.current) / 1100)
         : 0;
 
       // Temperatura. So esquenta depois da casca quebrar.
