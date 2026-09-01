@@ -369,6 +369,43 @@ html {
 }
 
 /* ==========================================================================
+   A rosa que desabrocha
+
+   O primeiro buquê dela era de rosas fechadas, de propósito. Aqui a rosa abre
+   conforme ela rola: as pétalas de fora primeiro, depois as do meio, depois o
+   miolo. Três variáveis derivadas do mesmo `--sp`, com atrasos diferentes.
+   ========================================================================== */
+
+.rosa {
+  --o1: clamp(0, calc(var(--sp, 0) * 1.9 - 0.08), 1);
+  --o2: clamp(0, calc(var(--sp, 0) * 1.9 - 0.42), 1);
+  --o3: clamp(0, calc(var(--sp, 0) * 1.9 - 0.72), 1);
+  transform: rotate(calc(-7deg + var(--o1) * 7deg));
+  transition: transform 0.2s linear;
+}
+
+/* O truque da flor fechada: o ângulo de cada pétala é multiplicado pelo
+   progresso. Com 0, todas apontam pra cima e se sobrepõem num botão estreito.
+   Conforme abre, cada uma vai pro seu ângulo e engorda. */
+.petala {
+  transform-box: view-box;
+  transform-origin: 100px 104px;
+  transform: rotate(calc(var(--a) * (0.14 + var(--o) * 0.86) * 1deg))
+    translateY(calc(var(--o) * -7px))
+    scale(
+      calc(var(--s) * (0.42 + var(--o) * 0.58)),
+      calc(var(--s) * (0.82 + var(--o) * 0.18))
+    );
+}
+
+.rosa-glow {
+  opacity: calc(0.12 + var(--o1, 0) * 0.5);
+  transform-box: view-box;
+  transform-origin: 100px 104px;
+  transform: scale(calc(0.6 + var(--o1, 0) * 0.55));
+}
+
+/* ==========================================================================
    Polaroid
    ========================================================================== */
 

@@ -43,19 +43,21 @@ export function Ambient() {
         started ? "opacity-100" : "opacity-0",
       )}
     >
-      {/* Nebulosas */}
+      {/* Nebulosas. Bem apagadas: elas sao clima, nao assunto. */}
       <div
         className="nebula-a absolute -top-[20%] -left-[15%] h-[70vh] w-[80vw]"
         style={{
-          background:
-            "radial-gradient(closest-side, color-mix(in srgb, var(--c-glow) 14%, transparent), transparent)",
+          background: `radial-gradient(closest-side, color-mix(in srgb, var(--c-glow) ${
+            lowPower ? 6 : 9
+          }%, transparent), transparent)`,
         }}
       />
       <div
         className="nebula-b absolute -right-[20%] bottom-[-15%] h-[65vh] w-[75vw]"
         style={{
-          background:
-            "radial-gradient(closest-side, color-mix(in srgb, var(--c-accent) 12%, transparent), transparent)",
+          background: `radial-gradient(closest-side, color-mix(in srgb, var(--c-accent) ${
+            lowPower ? 5 : 8
+          }%, transparent), transparent)`,
         }}
       />
 
@@ -68,15 +70,16 @@ export function Ambient() {
             {
               left: `${f.left}%`,
               top: `${f.top}%`,
-              width: `${f.size}px`,
-              height: `${f.size}px`,
+              // Na tela pequena eles ficam menores e mais discretos: o mesmo
+              // ponto de luz pesa muito mais em 390px de largura.
+              width: `${lowPower ? f.size * 0.7 : f.size}px`,
+              height: `${lowPower ? f.size * 0.7 : f.size}px`,
               background: "var(--c-glow)",
-              boxShadow:
-                "0 0 8px 2px color-mix(in srgb, var(--c-glow) 55%, transparent)",
+              boxShadow: `0 0 ${lowPower ? 5 : 8}px 1px color-mix(in srgb, var(--c-glow) 45%, transparent)`,
               "--ff-dur": `${f.dur}s`,
               "--ff-delay": `-${f.delay}s`,
               "--ff-dx": `${f.dx}vw`,
-              "--ff-peak": f.peak,
+              "--ff-peak": lowPower ? f.peak * 0.5 : f.peak * 0.75,
             } as CSSProperties
           }
         />

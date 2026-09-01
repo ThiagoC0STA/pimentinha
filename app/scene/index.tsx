@@ -23,8 +23,17 @@ export default function Scene() {
     return () => document.removeEventListener("visibilitychange", onVis);
   }, []);
 
-  const himCount = lowPower ? 2200 : 5200;
-  const herCount = lowPower ? 1100 : 2600;
+  /**
+   * Densidade por area de tela, nao por aparelho.
+   *
+   * Contagem fixa faz a mesma nuvem parecer poeira num monitor de 27" e uma
+   * tempestade num celular de 6". Aqui a conta e uma particula a cada N pixels,
+   * entao a cena tem o mesmo peso visual em qualquer tela. Esse componente so
+   * monta no cliente, entao ler `window` no estado inicial e seguro.
+   */
+  const [area] = useState(() => window.innerWidth * window.innerHeight);
+  const himCount = Math.round(Math.min(6500, Math.max(1100, area / 340)));
+  const herCount = Math.round(himCount * 0.5);
 
   return (
     <Canvas
@@ -45,10 +54,10 @@ export default function Scene() {
         role="him"
         count={himCount}
         frame={frame}
-        size={lowPower ? 5.4 : 6}
+        size={lowPower ? 3.9 : 5.4}
         cold={["#6f88ab", "#2b4266"]}
         warm={["#ffe0c6", "#e89a5c"]}
-        opacity={0.72}
+        opacity={lowPower ? 0.4 : 0.58}
       />
 
       {/* Ela: o unico ponto quente da tela enquanto tudo ainda e frio. */}
@@ -56,10 +65,10 @@ export default function Scene() {
         role="her"
         count={herCount}
         frame={frame}
-        size={lowPower ? 5.8 : 6.5}
+        size={lowPower ? 4.2 : 5.8}
         cold={["#ffc98a", "#ff8fa3"]}
         warm={["#ffdcb0", "#ff7f9c"]}
-        opacity={0.85}
+        opacity={lowPower ? 0.5 : 0.7}
         fadeInPhase={0.9}
       />
 

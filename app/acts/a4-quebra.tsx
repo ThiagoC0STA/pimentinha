@@ -3,11 +3,16 @@
 import { Act, ActMark, Beat, Frame } from "@/app/components/act";
 import { HoldToBreak } from "@/app/components/hold-to-break";
 import { Reveal, RevealWords } from "@/app/components/reveal";
+import { Rosa } from "@/app/components/rosa";
 import { useExperience } from "@/app/providers/experience";
+import { useSectionProgress } from "@/lib/use-section-progress";
 import { cn } from "@/lib/cn";
 
 export function Quebra() {
   const { broken } = useExperience();
+  // O container alto e quem mede o scroll; a rosa fica parada no meio da tela
+  // herdando `--sp` daqui e abrindo pétala por pétala.
+  const jardim = useSectionProgress<HTMLDivElement>();
 
   return (
     <Act index={4} full={false}>
@@ -61,6 +66,26 @@ export function Quebra() {
           >
             E aí a casca <span className="text-accent italic">quebrou</span>.
           </p>
+        </div>
+      </div>
+
+      {/* O buquê. A flor abre no ritmo do dedo dela. */}
+      <div ref={jardim} className="relative h-[170vh] w-full">
+        <div className="sticky top-0 flex h-[100dvh] flex-col items-center justify-center gap-6 px-6">
+          <Reveal className="text-center">
+            <p className="type-line text-balance text-fg/85">
+              No primeiro buquê que eu te dei, as rosas estavam fechadas.
+            </p>
+          </Reveal>
+
+          <Rosa className="w-60 max-w-[66vw] sm:w-72" />
+
+          <Reveal delay={400} className="text-center">
+            <p className="type-small text-muted">Foi de propósito.</p>
+            <p className="type-act font-display mt-3">
+              Porque o nosso ainda ia <span className="text-accent italic">desabrochar</span>.
+            </p>
+          </Reveal>
         </div>
       </div>
     </Act>

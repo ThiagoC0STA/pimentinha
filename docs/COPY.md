@@ -90,9 +90,19 @@ o gesto de empurrar.
 > Ninguém nunca tinha feito isso por mim.
 >
 > essa parte é sua.
-> **[ela segura o dedo por 2 segundos]**
+> **[ela segura o dedo por 2 segundos, e a página fica travada até ela segurar]**
 >
 > E aí a casca quebrou.
+
+E logo depois, o buquê (`app/components/rosa.tsx`):
+
+> No primeiro buquê que eu te dei, as rosas estavam fechadas.
+>
+> [a rosa abre pétala por pétala conforme ela rola: as de fora primeiro,
+> depois as do meio, depois o miolo]
+>
+> Foi de propósito.
+> Porque o nosso ainda ia **desabrochar**.
 
 ## Ato 5 — Quem é você · `app/acts/a5-voce.tsx`
 
