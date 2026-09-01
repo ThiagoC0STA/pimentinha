@@ -56,10 +56,12 @@ export function buildFormations(count: number, role: Role): Formations {
     /* 0 — disperso ------------------------------------------------------- */
     if (role === "him") {
       // Poeira fria e vazia, mais densa no meio, sumindo pras bordas.
-      const spread = 16 + rng() * 26;
-      p0[k] = sx * spread * 1.5;
-      p0[k + 1] = sy * spread * 0.7;
-      p0[k + 2] = sz * spread - 6;
+      // Perto da camera de proposito: espalhada ate z -48 ela ficava tao
+      // longe que a atenuacao de distancia apagava o ceu inteiro do "antes".
+      const spread = 10 + rng() * 15;
+      p0[k] = sx * spread * 1.7;
+      p0[k + 1] = sy * spread * 0.85;
+      p0[k + 2] = sz * spread * 0.7 - 4;
     } else {
       // Ela ainda nao chegou: fica fora de quadro, agrupada, a direita.
       p0[k] = 46 + rng() * 16;
@@ -67,12 +69,13 @@ export function buildFormations(count: number, role: Role): Formations {
       p0[k + 2] = -10 + (rng() - 0.5) * 16;
     }
 
-    /* 1 — casca ---------------------------------------------------------- */
+    /* 1 — fechado -------------------------------------------------------- */
     if (role === "him") {
-      // Superficie de esfera: ele virou parede.
-      const r = 4.55 + (rng() - 0.5) * 0.35;
+      // Nucleo denso e contraido: ele encolheu, nao virou planeta. A raiz
+      // cubica concentra os pontos no centro (distribuicao cheia, nao oca).
+      const r = 2.6 * Math.cbrt(rng()) + rng() * 0.3;
       p1[k] = sx * r;
-      p1[k + 1] = sy * r;
+      p1[k + 1] = sy * r * 0.9;
       p1[k + 2] = sz * r;
     } else {
       // Ela orbita do lado de fora, insistindo, num anel inclinado.

@@ -87,13 +87,17 @@ export function useExperience() {
 
 type Rgb = [number, number, number];
 
+/**
+ * O frio e noite de luar, nao cinza de escritorio. A primeira paleta fria
+ * era azul-aco apagado e a parte inteira parecia morta perto da quente.
+ */
 const COLD: Record<string, Rgb> = {
-  bg: [6, 8, 12],
-  surface: [12, 15, 21],
-  fg: [178, 189, 205],
-  muted: [103, 116, 136],
-  accent: [125, 148, 184],
-  glow: [90, 120, 170],
+  bg: [5, 7, 15],
+  surface: [11, 15, 24],
+  fg: [188, 198, 216],
+  muted: [110, 122, 146],
+  accent: [142, 168, 216],
+  glow: [122, 152, 208],
 };
 
 const WARM: Record<string, Rgb> = {

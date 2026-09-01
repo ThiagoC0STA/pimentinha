@@ -113,7 +113,11 @@ const FRAG = /* glsl */ `
     vec3 col = mix(cold, warm, uWarmth);
     col += core * (0.28 + uBurst * 0.9);
 
-    gl_FragColor = vec4(col, a * vGlow * uOpacity);
+    // O ceu frio precisa de um empurrao: as mesmas particulas que brilham
+    // bem na paleta quente somem no azul-noite. So a fase fria ganha.
+    float ganhoFrio = mix(1.45, 1.0, uWarmth);
+
+    gl_FragColor = vec4(col, a * vGlow * uOpacity * ganhoFrio);
   }
 `;
 

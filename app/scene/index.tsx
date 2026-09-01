@@ -5,7 +5,6 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useExperience } from "@/app/providers/experience";
 import { PointCloud } from "./point-cloud";
 import { Rig } from "./rig";
-import { Shell } from "./shell";
 
 /**
  * Governanta de qualidade: mede o FPS real e rebaixa a cena quando a maquina
@@ -65,7 +64,6 @@ export default function Scene() {
   const fator = nivel === 0 ? 1 : nivel === 1 ? 0.5 : 0.28;
   const himCount = Math.round(Math.min(3200, Math.max(520, area / 760)) * fator);
   const herCount = Math.round(himCount * 0.45);
-  const detalheCasca = nivel === 0 ? (lowPower ? 3 : 5) : nivel === 1 ? 3 : 2;
   const dprMax = nivel === 0 ? (lowPower ? 1.4 : 1.8) : nivel === 1 ? 1.2 : 1;
 
   return (
@@ -89,9 +87,9 @@ export default function Scene() {
         count={himCount}
         frame={frame}
         size={lowPower ? 3.2 : 4.4}
-        cold={["#6f88ab", "#2b4266"]}
+        cold={["#cfdcf5", "#5c78b5"]}
         warm={["#ffe0c6", "#e89a5c"]}
-        opacity={lowPower ? 0.26 : 0.36}
+        opacity={lowPower ? 0.3 : 0.4}
       />
 
       {/* Ela: o unico ponto quente da tela enquanto tudo ainda e frio. */}
@@ -106,9 +104,9 @@ export default function Scene() {
         fadeInPhase={0.9}
       />
 
-      {/* Sem Shockwave no estouro: o aro laranja atravessando a tela era
-          espetaculo demais. O corte de luz do flash 2D basta. */}
-      <Shell frame={frame} detail={detalheCasca} />
+      {/* Sem a esfera 3D: ela lia como "um planeta ai", e a parte fria inteira
+          sofria por causa dela. A casca vive na narrativa e no gesto do hold;
+          na cena, "fechado" e o nucleo denso de pontos da formacao 1. */}
     </Canvas>
   );
 }

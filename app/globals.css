@@ -12,12 +12,12 @@
   --warmth: 0;
 
   /* Defaults = paleta fria. O provider sobrescreve em runtime. */
-  --c-bg: rgb(6 8 12);
-  --c-surface: rgb(12 15 21);
-  --c-fg: rgb(178 189 205);
-  --c-muted: rgb(103 116 136);
-  --c-accent: rgb(125 148 184);
-  --c-glow: rgb(90 120 170);
+  --c-bg: rgb(5 7 15);
+  --c-surface: rgb(11 15 24);
+  --c-fg: rgb(188 198 216);
+  --c-muted: rgb(110 122 146);
+  --c-accent: rgb(142 168 216);
+  --c-glow: rgb(122 152 208);
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out-expo: cubic-bezier(0.87, 0, 0.13, 1);
