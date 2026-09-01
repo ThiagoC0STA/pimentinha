@@ -138,7 +138,7 @@ export function Futuro() {
             <DiasJuntos />
           </Reveal>
           <Reveal delay={700}>
-            <p className="type-label mt-4 text-muted">dias que a gente conversa</p>
+            <p className="type-label mt-4 text-muted">dias que a gente se conhece</p>
           </Reveal>
           <Reveal delay={1500}>
             <p className="type-line mt-12 text-balance">

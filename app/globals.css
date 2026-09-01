@@ -283,6 +283,58 @@ html {
   animation-delay: var(--flicker-delay, 0s);
 }
 
+/* ==========================================================================
+   Cenario narrativo (components/cenario.tsx)
+
+   Tres climas que contam historia em vez de decorar: a chuva fininha do
+   "antes" (que PARA no instante da quebra), as petalas da rosa caindo depois
+   dela, e os farois de madrugada no ato dos 100 km. Tudo transform + opacity,
+   tudo no compositor.
+   ========================================================================== */
+
+@keyframes chuva-cai {
+  from { transform: translate3d(0, -18vh, 0); }
+  to { transform: translate3d(3.5vw, 118vh, 0); }
+}
+.gota {
+  animation: chuva-cai var(--dur, 1.8s) linear infinite;
+  animation-delay: var(--delay, 0s);
+  will-change: transform;
+}
+
+@keyframes petala-cai {
+  0% { transform: translate3d(0, -8vh, 0) rotate(0deg); }
+  100% { transform: translate3d(var(--dx, 8vw), 112vh, 0) rotate(240deg); }
+}
+.petala-solta {
+  animation: petala-cai var(--dur, 17s) linear infinite;
+  animation-delay: var(--delay, 0s);
+  will-change: transform;
+}
+
+@keyframes farol-vai {
+  0% { transform: translate3d(-18vw, 0, 0); opacity: 0; }
+  10% { opacity: var(--peak, 0.5); }
+  90% { opacity: var(--peak, 0.5); }
+  100% { transform: translate3d(115vw, 0, 0); opacity: 0; }
+}
+@keyframes farol-vem {
+  0% { transform: translate3d(115vw, 0, 0) scaleX(-1); opacity: 0; }
+  10% { opacity: var(--peak, 0.35); }
+  90% { opacity: var(--peak, 0.35); }
+  100% { transform: translate3d(-18vw, 0, 0) scaleX(-1); opacity: 0; }
+}
+.farol {
+  animation: farol-vai var(--dur, 4.5s) linear infinite;
+  animation-delay: var(--delay, 0s);
+  will-change: transform, opacity;
+}
+.farol-contrario {
+  animation: farol-vem var(--dur, 5.5s) linear infinite;
+  animation-delay: var(--delay, 0s);
+  will-change: transform, opacity;
+}
+
 /* A pimentinha balanca pendurada pelo cabinho, como pingente de bolsa. */
 @keyframes pimenta-balanca {
   0%, 100% { transform: rotate(-7deg); }
