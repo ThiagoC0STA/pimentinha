@@ -47,10 +47,14 @@ export function Chegada() {
 
         <Beat>
           <p className="type-line text-fg/85">
-            <RevealLine>E virou o melhor encontro que nunca aconteceu,</RevealLine>
-            <RevealLine delay={260}>porque a gente ficou ali, juntinho,</RevealLine>
-            <RevealLine delay={520}>e eu não queria ir embora.</RevealLine>
+            <RevealLine>A gente achou outro lugar pra ir.</RevealLine>
+            <RevealLine delay={300}>E o que aconteceu depois é só nosso.</RevealLine>
           </p>
+          <Reveal delay={1200}>
+            <p className="type-line mt-10 text-muted">
+              Eu só sei que eu não queria ir embora.
+            </p>
+          </Reveal>
         </Beat>
       </Frame>
     </Act>

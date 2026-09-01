@@ -36,26 +36,45 @@ Depois do toque:
 
 > A gente se conheceu por mensagem.
 > Sem cinema, sem destino escrito no céu. Só uma conversa.
->
-> *20 de julho de 2026*
-> [as bolhas de conversa, em `app/components/chat.tsx`]
->
+
+Aí entra a conversa real do Instagram, transcrita do print, em
+`app/components/chat.tsx`, com os horários e tudo:
+
+> *20 de jul., 11:23*
+> **Oii**
+> *20 de jul., 13:12*
+> oiie
+> **Bem melhor aquii**
+> **Orra e tu é uma gatinha em**
+> **Gostei**
+> **Hahah**
+> kkkkkkkk ah obrigada
+> que bom que gostou
+> vc tbm é um gatinho
+> dos olhos claros
+> [e o "digitando" continua pulsando, porque a conversa não acabou]
+
+Depois:
+
 > Eu te chamei pra jantar no Tokomfome.
 > Tava tão cheio que a gente **nem entrou**.
 >
-> E virou o melhor encontro que nunca aconteceu,
-> porque a gente ficou ali, juntinho,
-> e eu não queria ir embora.
-
-**Nota:** as quatro mensagens do chat são um espaço reservado (`oi, tudo bem?` /
-`oi, tudo sim` / `vamo jantar um dia desses?` / `vamo`). Se você tiver os prints
-da conversa real, troque em `app/components/chat.tsx`. Fica muito mais forte.
+> A gente achou outro lugar pra ir.
+> E o que aconteceu depois é só nosso.
+>
+> Eu só sei que eu não queria ir embora.
 
 ## Ato 3 — Eu tentei te afastar · `app/acts/a3-afastar.tsx`
+
+As três frases derivam para lados opostos conforme ela rola: o scroll dela faz
+o gesto de empurrar.
 
 > Uma vez.
 >
 > E depois de novo.
+>
+> E ainda teve uma terceira.
+> Três vezes. E você continuou aí.
 >
 > Não era você.
 > Era eu com medo de gostar de alguém outra vez.
@@ -81,18 +100,23 @@ da conversa real, troque em `app/components/chat.tsx`. Fica muito mais forte.
 >
 > No seu sorriso, que é o mais bonito que eu já vi.
 > No seu jeito de falar, que me pega toda vez.
-> Nos seus olhos grandes. E na gente se olhando sem precisar falar nada.
+> No seu sotaque de Belém, que eu peço pra você repetir só pra ouvir de novo.
+> Nos seus olhos grandes, que eu fico olhando mais tempo do que devia.
+> E na gente se olhando sem precisar falar nada.
 > Nos seus pezinhos virados pra dentro, que eu acho a coisa mais fofa do mundo.
 > Em você animadinha.
 > E em você carinhosa, do jeito que você diz que aprendeu comigo.
 >
+> e no nome que eu te dou quando é só a gente
+> *minha pimentinha*
+>
 > e em você falando
-> *você é muito apaixonado*
+> *você é muito é apaixonado*
 >
 > Sou.
 > Todo dia um pouco mais.
 
-Cada frase vem com uma foto (fotos 1 a 6). As legendas das polaroids estão
+Cada frase vem com uma foto (fotos 1 a 7). As legendas das polaroids estão
 vazias de propósito: se quiser escrever à mão embaixo de cada foto, passe
 `legenda="..."` no `<Detalhe>`.
 
@@ -110,7 +134,7 @@ vazias de propósito: se quiser escrever à mão embaixo de cada foto, passe
 > E foi tirando, uma por uma, insegurança que eu carregava há anos.
 > Sem nunca fazer disso um favor.
 >
-> [esteira com as fotos 7 a 11]
+> [esteira com as fotos 8 a 11]
 >
 > Eu mudei da noite pro dia.
 > E foi por você.
@@ -125,6 +149,7 @@ vazias de propósito: se quiser escrever à mão embaixo de cada foto, passe
 >
 > E se você perguntar se vale a pena:
 > eu faço de novo hoje, amanhã **e depois**.
+> Nem que eu tenha que viajar um milhão de quilômetros pra te ver.
 
 ## Ato 8 — O que eu vejo daqui · `app/acts/a8-futuro.tsx`
 
@@ -138,7 +163,7 @@ vazias de propósito: se quiser escrever à mão embaixo de cada foto, passe
 > Eu vejo você médica, cuidando da cabeça das pessoas do jeito que você cuidou
 > da minha sem nem perceber.
 >
-> Eu vejo você mãe, porque eu já vi como você olha pra criança.
+> Eu vejo você mãe. Porque eu já vi como você fica quando vê uma criança.
 >
 > Eu vejo a gente.
 >
@@ -146,28 +171,26 @@ vazias de propósito: se quiser escrever à mão embaixo de cada foto, passe
 >
 > E pela primeira vez em muito tempo eu não tô com medo do que vem depois.
 
+O contador é calculado no navegador dela, no dia em que ela abrir. Hoje marca
+43. Se ela abrir daqui a duas semanas, marca 57. Não precisa mexer em nada.
+
 ## Ato 9 — A pergunta · `app/acts/a9-pergunta.tsx`
 
 > Eu te prometi que ia te dar o meu melhor.
 > Isso aqui é uma parte dele.
 >
 > Por isso, Sophya,
-> eu quero te fazer uma pergunta.
 >
-> # Agora olha pra mim.
->
-> t.
+> # eu quero te fazer uma pergunta.
 
-Se você for ficar atrás dela em vez de na frente, troque a última linha por
-"Agora olha pra trás." (última `RevealWords` do arquivo).
+E acabou. Nada depois disso: quem fala a seguir é você.
 
 ---
 
 ## O que ficou de fora, de propósito
 
-O que você me contou de mais íntimo (corpo, hábitos, vinho) não entrou. Ela vai
-ver isso com você do lado e provavelmente vai mostrar pra mãe e pro Gabriel
-depois. O que entrou é o que é dela sem expor: sorriso, olhos, jeito de falar,
-os pezinhos, o carinho.
+O que você me contou de mais íntimo não entrou literalmente. O motel virou "a
+gente achou outro lugar pra ir, e o que aconteceu depois é só nosso": quem
+viveu entende, e quem ler por cima do ombro dela não.
 
 O site também está com `noindex`: não aparece em busca nenhuma.

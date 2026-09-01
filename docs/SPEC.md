@@ -43,6 +43,8 @@ Ela segura o dedo na tela por 2 segundos. A rachadura se espalha, a casca estilh
 Simbolismo direto: ela quebrou a casca dele na vida real, e quebra de novo aqui, com a mão dela.
 Um único gesto no site inteiro, pra não virar joguinho.
 
+**A página trava até isso acontecer.** Quando o botão chega ao centro da tela, o scroll é bloqueado (`wheel`, `touchmove` e teclas, com `passive: false`, mais um snap-back no rAF que pega o momentum do iOS). Se desse pra rolar, ela rolaria sem tocar e o momento se perderia. Depois de duas tentativas de rolar, a dica aparece maior explicando o que fazer. A única saída é o dedo dela.
+
 ## 4. Direção visual
 
 **Temperatura como narrativa.** Uma CSS var global (`--warmth`, 0 a 1) controlada pelo progresso do scroll.
@@ -59,10 +61,21 @@ Tipografia: Instrument Serif italic nos momentos de peso, Instrument Sans no cor
 
 Mobile-first de verdade: ela vai ver no celular, com o Thiago do lado. Desktop é a versão cinematográfica.
 
-## 5. Áudio
+## 5. Áudio — duas trilhas
 
-"Fala Só de Amor" (Edson Gomes), em `public/audio/`.
-Destravado pelo hold do portão (autoplay bloqueado por política de navegador). Fade-in de 3s, botão de mute sempre visível, e volume caindo para 15% no ato 9 pra última frase acontecer quase no silêncio.
+| Trilha | Arquivo | Quando |
+|---|---|---|
+| Fria | `public/audio/song-first.mp3`, entrando aos **21s** | Do portão até a casca quebrar |
+| Dela | `public/audio/song.mp3` (Fala Só de Amor, Edson Gomes) | Do estouro até o fim |
+
+A troca acontece no instante exato da quebra, em crossfade de ~3s: a fria desce e pausa sozinha, a dela entra do segundo zero. O som conta a mesma história que a cor.
+
+Detalhes que importam:
+
+- Nenhuma das duas pode tocar sozinha: o navegador exige gesto. O toque no portão dá play na fria **e** destrava a segunda (play seguido de pause imediato), senão o play da troca seria bloqueado por falta de interação recente
+- A fria não usa `loop` nativo, que voltaria ao segundo zero. Ela reinicia na mão a partir dos 21s
+- Botão de mute sempre visível, e volume caindo para 16% no ato 9 pra última frase acontecer quase no silêncio
+- Se `song-first.mp3` sumir, o site toca só a música dela do início ao fim e ninguém percebe falta
 
 ## 6. Fora do escopo (deliberado)
 

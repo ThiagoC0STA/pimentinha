@@ -121,7 +121,7 @@ export function Futuro() {
         <Beat height="60vh">
           <Reveal>
             <p className="type-line text-fg/90">
-              Eu vejo você mãe, porque eu já vi como você olha pra criança.
+              Eu vejo você mãe. Porque eu já vi como você fica quando vê uma criança.
             </p>
           </Reveal>
         </Beat>

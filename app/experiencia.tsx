@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { Experience, useExperience } from "./providers/experience";
 import { SmoothScroll } from "./providers/smooth-scroll";
+import { Ambient } from "./components/ambient";
 import { AudioController } from "./components/audio-controller";
 import { ActProgress, Atmosphere, Cursor, ReadingBar, ScrollCue } from "./components/chrome";
 import { Gate } from "./components/gate";
@@ -53,6 +54,7 @@ function Palco() {
       )}
 
       <Atmosphere />
+      <Ambient />
       <Cursor />
       <ReadingBar />
       <ActProgress />

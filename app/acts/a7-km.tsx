@@ -35,6 +35,11 @@ export function Quilometros() {
               eu faço de novo hoje, amanhã <span className="text-accent italic">e depois</span>.
             </p>
           </Reveal>
+          <Reveal delay={2100}>
+            <p className="type-line mt-10 text-balance text-fg/85">
+              Nem que eu tenha que viajar um milhão de quilômetros pra te ver.
+            </p>
+          </Reveal>
         </Beat>
       </Frame>
     </Act>

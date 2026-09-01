@@ -72,9 +72,16 @@ export function Voce() {
         />
 
         <Detalhe
-          texto="Nos seus olhos grandes."
+          texto="No seu sotaque de Belém, que eu peço pra você repetir só pra ouvir de novo."
           fotoIndex={2}
           rot={-2}
+        />
+
+        <Detalhe
+          texto="Nos seus olhos grandes, que eu fico olhando mais tempo do que devia."
+          fotoIndex={3}
+          rot={3}
+          flip
         >
           <Reveal delay={900}>
             <p className="type-line mt-6 text-muted">
@@ -85,34 +92,44 @@ export function Voce() {
 
         <Detalhe
           texto="Nos seus pezinhos virados pra dentro, que eu acho a coisa mais fofa do mundo."
-          fotoIndex={3}
-          rot={3}
-          flip
+          fotoIndex={4}
+          rot={-2.5}
         />
 
-        <Detalhe texto="Em você animadinha." fotoIndex={4} rot={-2.5} />
+        <Detalhe texto="Em você animadinha." fotoIndex={5} rot={2} flip />
 
         <Detalhe
           texto="E em você carinhosa, do jeito que você diz que aprendeu comigo."
-          fotoIndex={5}
-          rot={2}
-          flip
+          fotoIndex={6}
+          rot={-3}
         />
+
+        <Beat height="70vh" className="items-center text-center">
+          <Reveal>
+            <p className="type-small text-muted">e no nome que eu te dou quando é só a gente</p>
+          </Reveal>
+          <RevealWords
+            text="minha pimentinha"
+            className="type-act font-display mt-6 italic text-accent"
+            delay={600}
+            stagger={110}
+          />
+        </Beat>
 
         <Beat height="80vh" className="items-center text-center">
           <Reveal>
             <p className="type-label text-muted">e em você falando</p>
           </Reveal>
           <RevealWords
-            text="você é muito apaixonado"
+            text="você é muito é apaixonado"
             className="type-act font-display mt-6 italic text-accent"
             delay={500}
             stagger={80}
           />
-          <Reveal delay={1900}>
+          <Reveal delay={2000}>
             <p className="type-line mt-12">Sou.</p>
           </Reveal>
-          <Reveal delay={2500}>
+          <Reveal delay={2600}>
             <p className="type-line text-muted">Todo dia um pouco mais.</p>
           </Reveal>
         </Beat>

@@ -29,7 +29,7 @@ const FATOS = [
 /** Esteira com o resto das fotos. Passa devagar, como memoria mesmo. */
 function Esteira() {
   const { lowPower } = useExperience();
-  const fotos = FOTOS.slice(6);
+  const fotos = FOTOS.slice(7);
   const fila = [...fotos, ...fotos, ...fotos];
 
   return (

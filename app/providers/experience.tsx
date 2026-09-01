@@ -60,6 +60,12 @@ interface ExperienceApi {
   breakShell: () => void;
   /** Enquanto ela segura o dedo: 0 a 1. */
   setCrack: (v: number) => void;
+  /** Prende a pagina onde ela esta ate a casca quebrar. */
+  lockScroll: () => void;
+  releaseScroll: () => void;
+  scrollLocked: boolean;
+  /** Quantas vezes ela tentou rolar enquanto estava presa. */
+  nudges: number;
   act: number;
   reduced: boolean;
   lowPower: boolean;
@@ -138,6 +144,9 @@ export function Experience({ children }: { children: ReactNode }) {
   const brokenAtRef = useRef(0);
   const crackRef = useRef(0);
   const actRef = useRef(0);
+  const lockYRef = useRef<number | null>(null);
+  const [scrollLocked, setScrollLocked] = useState(false);
+  const [nudges, setNudges] = useState(0);
 
   const subscribe = useCallback((fn: FrameListener) => {
     listeners.current.add(fn);
@@ -165,6 +174,60 @@ export function Experience({ children }: { children: ReactNode }) {
   const start = useCallback(() => {
     setStarted(true);
   }, []);
+
+  /* Trava do ato 4 -------------------------------------------------------- */
+
+  const lockScroll = useCallback(() => {
+    if (lockYRef.current !== null) return;
+    lockYRef.current = window.scrollY;
+    setScrollLocked(true);
+  }, []);
+
+  const releaseScroll = useCallback(() => {
+    if (lockYRef.current === null) return;
+    lockYRef.current = null;
+    setScrollLocked(false);
+    setNudges(0);
+  }, []);
+
+  /**
+   * Enquanto a casca nao quebra, a pagina nao anda. Rolar tem que nao dar em
+   * nada: e o unico jeito de garantir que ela realmente encoste o dedo, em vez
+   * de passar batido rolando.
+   *
+   * `passive: false` e obrigatorio aqui, senao o preventDefault e ignorado e o
+   * touch do celular continua rolando.
+   */
+  useEffect(() => {
+    if (!scrollLocked) return;
+
+    const bloquear = (e: Event) => {
+      e.preventDefault();
+      setNudges((n) => (n < 99 ? n + 1 : n));
+    };
+    const bloquearTeclas = (e: KeyboardEvent) => {
+      const teclas = ["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End", " "];
+      if (teclas.includes(e.key)) {
+        e.preventDefault();
+        setNudges((n) => (n < 99 ? n + 1 : n));
+      }
+    };
+
+    window.addEventListener("wheel", bloquear, { passive: false });
+    window.addEventListener("touchmove", bloquear, { passive: false });
+    window.addEventListener("keydown", bloquearTeclas);
+
+    return () => {
+      window.removeEventListener("wheel", bloquear);
+      window.removeEventListener("touchmove", bloquear);
+      window.removeEventListener("keydown", bloquearTeclas);
+    };
+  }, [scrollLocked]);
+
+  // A casca quebrou: a pagina volta a andar.
+  useEffect(() => {
+    if (broken) releaseScroll();
+  }, [broken, releaseScroll]);
 
   /* Preferencias do aparelho ---------------------------------------------- */
   useEffect(() => {
@@ -254,6 +317,12 @@ export function Experience({ children }: { children: ReactNode }) {
         measure();
       }
 
+      // Presa no ato 4: qualquer resvalo de scroll volta pro lugar. Isso pega
+      // ate o momentum do iOS, que ignora preventDefault depois que começou.
+      if (lockYRef.current !== null && window.scrollY !== lockYRef.current) {
+        window.scrollTo(0, lockYRef.current);
+      }
+
       const scrollY = window.scrollY;
       f.scrollY = scrollY;
       f.scroll = clamp01(scrollY / Math.max(1, docHeight - f.vh));
@@ -284,12 +353,11 @@ export function Experience({ children }: { children: ReactNode }) {
         setAct(current);
       }
 
-      // Rede de seguranca: se ela passar batido pelo ato da quebra sem segurar
-      // o dedo, a casca quebra sozinha no fim da secao. O site nunca trava.
+      // Rede de seguranca de ultimo caso: se por qualquer motivo ela chegar
+      // depois do ato da quebra sem ter quebrado (link direto, restauracao de
+      // scroll do navegador), a casca quebra sozinha. Dentro do ato 4 nao tem
+      // atalho nenhum: so quebra com o dedo dela.
       if (!brokenRef.current && current > ATO_QUEBRA) breakShell();
-      if (!brokenRef.current && current === ATO_QUEBRA && progress > 0.88) {
-        breakShell();
-      }
 
       // Formacao da nuvem: interpolada entre o ato atual e o proximo.
       const nextAct = Math.min(TOTAL_ATOS - 1, current + 1);
@@ -347,11 +415,29 @@ export function Experience({ children }: { children: ReactNode }) {
       broken,
       breakShell,
       setCrack,
+      lockScroll,
+      releaseScroll,
+      scrollLocked,
+      nudges,
       act,
       reduced,
       lowPower,
     }),
-    [subscribe, started, start, broken, breakShell, setCrack, act, reduced, lowPower],
+    [
+      subscribe,
+      started,
+      start,
+      broken,
+      breakShell,
+      setCrack,
+      lockScroll,
+      releaseScroll,
+      scrollLocked,
+      nudges,
+      act,
+      reduced,
+      lowPower,
+    ],
   );
 
   return <ExperienceContext.Provider value={api}>{children}</ExperienceContext.Provider>;

@@ -13,15 +13,43 @@ const CIRC = 2 * Math.PI * R;
  *
  * Ela segura o dedo por dois segundos e a casca racha. Nao e enfeite: foi ela
  * quem quebrou a casca dele na vida real, entao aqui a casca so quebra com a
- * mao dela. Se ela nao entender e continuar rolando, o provider quebra sozinho
- * no fim da secao, entao a experiencia nunca trava.
+ * mao dela.
+ *
+ * E a pagina para de andar ate isso acontecer. Se desse pra rolar, ela rolava
+ * sem tocar, e o momento inteiro se perdia. Depois de duas tentativas de rolar
+ * a dica aparece maior, pra que ninguem fique preso sem entender o porque.
  */
 export function HoldToBreak() {
-  const { setCrack, breakShell, broken } = useExperience();
+  const { setCrack, breakShell, broken, lockScroll, releaseScroll, scrollLocked, nudges } =
+    useExperience();
+  const wrapRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<SVGCircleElement>(null);
   const holdingRef = useRef(false);
   const progressRef = useRef(0);
   const [holding, setHolding] = useState(false);
+
+  // Prende a pagina quando o botao chega ao centro da tela.
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el || broken) return;
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) lockScroll();
+      },
+      // Faixa estreita no meio da tela: so trava com o botao bem centralizado,
+      // nunca com ele metade pra fora.
+      { threshold: 1, rootMargin: "-35% 0px -35% 0px" },
+    );
+
+    io.observe(el);
+    return () => io.disconnect();
+  }, [broken, lockScroll]);
+
+  // Se ela sair da pagina e voltar com a casca ja quebrada, nada fica preso.
+  useEffect(() => {
+    if (broken) releaseScroll();
+  }, [broken, releaseScroll]);
 
   useEffect(() => {
     let raf = 0;
@@ -34,7 +62,8 @@ export function HoldToBreak() {
       if (broken) return;
 
       const p = progressRef.current;
-      // Segurando: enche em HOLD_MS. Soltou: esvazia em ~2x mais devagar.
+      // Segurando: enche em HOLD_MS. Soltou: esvazia mais devagar, pra quem
+      // escorregou o dedo nao perder tudo.
       const next = holdingRef.current
         ? Math.min(1, p + dt / HOLD_MS)
         : Math.max(0, p - dt / (HOLD_MS * 1.8));
@@ -65,8 +94,11 @@ export function HoldToBreak() {
     setHolding(false);
   };
 
+  const insistindo = scrollLocked && !broken && nudges >= 2;
+
   return (
     <div
+      ref={wrapRef}
       className={cn(
         "flex flex-col items-center gap-6 transition-all duration-1000",
         broken ? "pointer-events-none scale-90 opacity-0" : "opacity-100",
@@ -121,9 +153,18 @@ export function HoldToBreak() {
         />
       </button>
 
-      <span className="type-label text-muted">
-        {holding ? "não solta" : "segura aqui"}
-      </span>
+      <span className="type-label text-muted">{holding ? "não solta" : "segura aqui"}</span>
+
+      {/* Ela tentou rolar. A pagina nao anda, entao explica por quê. */}
+      <p
+        className={cn(
+          "type-small max-w-xs text-balance text-center transition-all duration-700",
+          insistindo ? "translate-y-0 text-accent opacity-100" : "translate-y-2 opacity-0",
+        )}
+      >
+        segura o dedo no círculo até ele fechar. daqui em diante quem abre a
+        porta é você.
+      </p>
     </div>
   );
 }

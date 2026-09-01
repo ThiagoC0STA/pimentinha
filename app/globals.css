@@ -287,6 +287,53 @@ html {
   0%, 100% { opacity: 0.2; }
   50% { opacity: 1; }
 }
+
+/* Vaga-lumes: pontos de luz que sobem devagar e piscam fora de sincronia.
+   So transform e opacity, entao tudo roda no compositor. */
+@keyframes firefly {
+  0% {
+    transform: translate3d(0, 12vh, 0) scale(0.6);
+    opacity: 0;
+  }
+  15% {
+    opacity: var(--ff-peak, 0.75);
+  }
+  50% {
+    transform: translate3d(var(--ff-dx, 4vw), -6vh, 0) scale(1);
+  }
+  85% {
+    opacity: var(--ff-peak, 0.75);
+  }
+  100% {
+    transform: translate3d(calc(var(--ff-dx, 4vw) * -0.6), -22vh, 0) scale(0.7);
+    opacity: 0;
+  }
+}
+.firefly {
+  animation: firefly var(--ff-dur, 22s) ease-in-out infinite;
+  animation-delay: var(--ff-delay, 0s);
+  will-change: transform, opacity;
+}
+
+/* Nebulosas: manchas enormes de cor que passeiam devagar pelo fundo.
+   Sem filter: blur (aquilo repinta a tela inteira e mata celular). O
+   proprio radial-gradient ja entrega a borda suave de graca. */
+@keyframes nebula-a {
+  0%, 100% { transform: translate3d(-6%, 0, 0) scale(1); }
+  50% { transform: translate3d(8%, -4%, 0) scale(1.15); }
+}
+@keyframes nebula-b {
+  0%, 100% { transform: translate3d(5%, 3%, 0) scale(1.1); }
+  50% { transform: translate3d(-7%, -5%, 0) scale(1); }
+}
+.nebula-a {
+  animation: nebula-a 46s ease-in-out infinite;
+  will-change: transform;
+}
+.nebula-b {
+  animation: nebula-b 62s ease-in-out infinite;
+  will-change: transform;
+}
 .twinkle {
   animation: twinkle var(--tw-dur, 3s) ease-in-out infinite;
   animation-delay: var(--tw-delay, 0s);

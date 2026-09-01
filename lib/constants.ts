@@ -55,8 +55,24 @@ export const TOTAL_ATOS = ATOS.length;
 /** Ato em que a casca quebra e o site esquenta. */
 export const ATO_QUEBRA = 4;
 
+/**
+ * Duas trilhas: uma pro frio e outra pro calor.
+ *
+ * A fria toca do portao ate a casca quebrar. No instante da quebra entra a
+ * musica dela, em crossfade de uns tres segundos. Se `antes.mp3` nao existir,
+ * o site toca a musica dela do comeco ao fim e ninguem percebe falta.
+ */
 export const MUSICA = {
-  src: "/audio/song.mp3",
-  titulo: "Fala So de Amor",
-  artista: "Edson Gomes",
+  fria: {
+    src: "/audio/song-first.mp3",
+    titulo: "trilha do antes",
+    /** Comeca aos 21s: a introducao fica de fora, entra direto no ponto. */
+    inicio: 21,
+  },
+  quente: {
+    src: "/audio/song.mp3",
+    titulo: "Fala So de Amor",
+    artista: "Edson Gomes",
+    inicio: 0,
+  },
 };
