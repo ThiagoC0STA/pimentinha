@@ -2,8 +2,9 @@
 
 import type { ReactNode } from "react";
 import { Act, ActMark, Beat, Frame } from "@/app/components/act";
+import { Pimenta } from "@/app/components/pimenta";
 import { Polaroid } from "@/app/components/polaroid";
-import { Reveal, RevealWords } from "@/app/components/reveal";
+import { Reveal, RevealScale, RevealWords } from "@/app/components/reveal";
 import { FOTOS } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 
@@ -108,14 +109,35 @@ export function Voce() {
           rot={-3}
         />
 
-        <Beat height="70vh" className="items-center text-center">
+        {/* As quatro fotos que sobraram: nenhuma dela fica de fora deste ato. */}
+        <Beat height="85vh">
+          <Reveal className="mb-10 text-center">
+            <p className="type-line">E de você em todas as versões.</p>
+          </Reveal>
+          <div className="mx-auto grid w-full max-w-3xl grid-cols-2 gap-5 sm:grid-cols-4 sm:gap-6">
+            {[7, 8, 9, 10].map((i, ordem) => (
+              <Polaroid
+                key={i}
+                foto={FOTOS[i]}
+                rot={[-3, 2.5, -2, 3.5][ordem]}
+                delay={ordem * 140}
+                sizes="(max-width: 768px) 45vw, 200px"
+              />
+            ))}
+          </div>
+        </Beat>
+
+        <Beat height="75vh" className="items-center text-center">
           <Reveal>
             <p className="type-small text-muted">e no nome que eu te dou quando é só a gente</p>
           </Reveal>
+          <RevealScale delay={500} className="mt-8">
+            <Pimenta className="h-28 w-auto sm:h-32" />
+          </RevealScale>
           <RevealWords
             text="minha pimentinha"
             className="type-act font-display mt-6 italic text-accent"
-            delay={600}
+            delay={900}
             stagger={110}
           />
         </Beat>

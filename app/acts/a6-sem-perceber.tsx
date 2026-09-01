@@ -29,8 +29,11 @@ const FATOS = [
 /** Esteira com o resto das fotos. Passa devagar, como memoria mesmo. */
 function Esteira() {
   const { lowPower } = useExperience();
-  const fotos = FOTOS.slice(7);
-  const fila = [...fotos, ...fotos, ...fotos];
+  // Todas as onze: a esteira e o filme da memoria, revisitar e o ponto.
+  // Duas copias exatas, nao tres: o keyframe anda -50% do trilho, entao so
+  // um numero PAR de copias fecha o loop sem salto no fim do ciclo.
+  const fotos = FOTOS;
+  const fila = [...fotos, ...fotos];
 
   return (
     <div className="relative w-full overflow-hidden py-4" aria-hidden>

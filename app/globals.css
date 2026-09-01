@@ -283,6 +283,17 @@ html {
   animation-delay: var(--flicker-delay, 0s);
 }
 
+/* A pimentinha balanca pendurada pelo cabinho, como pingente de bolsa. */
+@keyframes pimenta-balanca {
+  0%, 100% { transform: rotate(-7deg); }
+  50% { transform: rotate(7deg); }
+}
+.pimenta-balanca {
+  transform-box: view-box;
+  transform-origin: 76px 10px;
+  animation: pimenta-balanca 3.2s ease-in-out infinite;
+}
+
 @keyframes twinkle {
   0%, 100% { opacity: 0.2; }
   50% { opacity: 1; }
