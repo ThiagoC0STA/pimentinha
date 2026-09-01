@@ -68,12 +68,14 @@ Mobile-first de verdade: ela vai ver no celular, com o Thiago do lado. Desktop �
 | Fria | `public/audio/song-first.mp3`, entrando aos **21s** | Do portão até a casca quebrar |
 | Dela | `public/audio/song.mp3` (Fala Só de Amor, Edson Gomes) | Do estouro até o fim |
 
-A troca acontece no instante exato da quebra, em crossfade de ~3s: a fria desce e pausa sozinha, a dela entra do segundo zero. O som conta a mesma história que a cor.
+A troca acontece no instante exato da quebra: a fria zera em ~0.35s e pausa, tem um respiro de 420ms quase em silêncio, e a dela entra do segundo zero enchendo em ~1.5s. Fade cruzado longo não serve aqui — soa como duas músicas tocando juntas, que foi exatamente o defeito da primeira versão (a trilha antiga levava quase 7 segundos pra sumir).
 
 Detalhes que importam:
 
 - Nenhuma das duas pode tocar sozinha: o navegador exige gesto. O toque no portão dá play na fria **e** destrava a segunda (play seguido de pause imediato), senão o play da troca seria bloqueado por falta de interação recente
 - A fria não usa `loop` nativo, que voltaria ao segundo zero. Ela reinicia na mão a partir dos 21s
+- Um vigia roda a cada frame e religa qualquer trilha que devia estar tocando e parou: fim de arquivo, `ended` que não disparou, interrupção do sistema. Ninguém vai pedir alguém em namoro no silêncio por causa de um evento perdido
+- O efeito que inicia o áudio não observa `broken`. Quando observava, ele disputava a troca com o efeito da quebra: pulava o respiro e deixava a trilha fria tocando pra sempre em volume zero
 - Botão de mute sempre visível, e volume caindo para 16% no ato 9 pra última frase acontecer quase no silêncio
 - Se `song-first.mp3` sumir, o site toca só a música dela do início ao fim e ninguém percebe falta
 

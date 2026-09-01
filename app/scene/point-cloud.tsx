@@ -48,19 +48,20 @@ const VERT = /* glsl */ `
       aP3 * weight(uPhase, 3.0) +
       aP4 * weight(uPhase, 4.0);
 
-    // Respiracao: nada fica parado, nem quando o scroll para.
-    float wob = 0.22 + aSeed * 0.5;
-    pos.x += sin(uTime * 0.42 + aSeed * 24.0) * wob;
-    pos.y += cos(uTime * 0.37 + aSeed * 17.0) * wob;
-    pos.z += sin(uTime * 0.29 + aSeed * 31.0) * wob * 0.8;
+    // Respiracao quase imperceptivel: a cena tem que dar sinal de vida sem
+    // roubar o olho da carta. Amplitude grande aqui vira formigueiro.
+    float wob = 0.08 + aSeed * 0.14;
+    pos.x += sin(uTime * 0.22 + aSeed * 24.0) * wob;
+    pos.y += cos(uTime * 0.19 + aSeed * 17.0) * wob;
+    pos.z += sin(uTime * 0.15 + aSeed * 31.0) * wob * 0.8;
 
     // O estouro da casca empurra tudo pra fora por um instante.
     pos += normalize(pos + 0.0001) * uBurst * (2.5 + aSeed * 9.0);
 
-    // Sopro do ponteiro: a nuvem sente o dedo dela passando.
+    // Sopro do ponteiro: a nuvem sente o dedo dela passando, de leve.
     vec2 toPointer = pos.xy - uPointer * 12.0;
     float d = length(toPointer);
-    pos.xy += normalize(toPointer + 0.0001) * (3.4 / (1.0 + d * d * 0.06));
+    pos.xy += normalize(toPointer + 0.0001) * (1.2 / (1.0 + d * d * 0.06));
 
     pos *= uSpread;
 

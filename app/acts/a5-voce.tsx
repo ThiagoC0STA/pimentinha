@@ -15,6 +15,7 @@ function Detalhe({
   flip = false,
   legenda,
   children,
+  priority = false,
 }: {
   texto: string;
   fotoIndex: number;
@@ -22,6 +23,8 @@ function Detalhe({
   flip?: boolean;
   legenda?: string;
   children?: ReactNode;
+  /** A primeira foto da secao carrega antes das outras. */
+  priority?: boolean;
 }) {
   return (
     <Beat height="78vh">
@@ -38,7 +41,7 @@ function Detalhe({
         {/* No desktop a foto tem teto: sem isso a polaroid vira um poster de
             660px de altura e o par texto/foto nao cabe mais numa tela. */}
         <div className="w-[66%] sm:w-1/2 sm:max-w-75">
-          <Polaroid foto={FOTOS[fotoIndex]} rot={rot} caption={legenda} delay={200} priority={fotoIndex === 0} />
+          <Polaroid foto={FOTOS[fotoIndex]} rot={rot} caption={legenda} delay={200} priority={priority} />
         </div>
       </div>
     </Beat>
@@ -60,7 +63,8 @@ export function Voce() {
 
         <Detalhe
           texto="No seu sorriso, que é o mais bonito que eu já vi."
-          fotoIndex={0}
+          fotoIndex={3}
+          priority
           rot={-3.5}
         />
 
@@ -79,7 +83,7 @@ export function Voce() {
 
         <Detalhe
           texto="Nos seus olhos grandes, que eu fico olhando mais tempo do que devia."
-          fotoIndex={3}
+          fotoIndex={0}
           rot={3}
           flip
         >

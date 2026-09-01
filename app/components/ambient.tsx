@@ -31,9 +31,11 @@ export function Ambient() {
   const { started, reduced, lowPower } = useExperience();
   if (reduced) return null;
 
-  // Celular ganha metade dos vaga-lumes: sao doze elementos animando o tempo
-  // todo, e ali cada camada composta custa bateria.
-  const bichinhos = lowPower ? VAGALUMES.filter((_, i) => i % 2 === 0) : VAGALUMES;
+  // Poucos, de propósito. Doze pontos subindo ao mesmo tempo viram enfeite de
+  // tela de descanso; três ou seis apenas sugerem que o ar está vivo.
+  const bichinhos = lowPower
+    ? VAGALUMES.filter((_, i) => i % 4 === 0)
+    : VAGALUMES.filter((_, i) => i % 2 === 0);
 
   return (
     <div
@@ -48,7 +50,7 @@ export function Ambient() {
         className="nebula-a absolute -top-[20%] -left-[15%] h-[70vh] w-[80vw]"
         style={{
           background: `radial-gradient(closest-side, color-mix(in srgb, var(--c-glow) ${
-            lowPower ? 6 : 9
+            lowPower ? 3 : 5
           }%, transparent), transparent)`,
         }}
       />
@@ -56,7 +58,7 @@ export function Ambient() {
         className="nebula-b absolute -right-[20%] bottom-[-15%] h-[65vh] w-[75vw]"
         style={{
           background: `radial-gradient(closest-side, color-mix(in srgb, var(--c-accent) ${
-            lowPower ? 5 : 8
+            lowPower ? 3 : 4
           }%, transparent), transparent)`,
         }}
       />
@@ -79,7 +81,7 @@ export function Ambient() {
               "--ff-dur": `${f.dur}s`,
               "--ff-delay": `-${f.delay}s`,
               "--ff-dx": `${f.dx}vw`,
-              "--ff-peak": lowPower ? f.peak * 0.5 : f.peak * 0.75,
+              "--ff-peak": lowPower ? f.peak * 0.3 : f.peak * 0.45,
             } as CSSProperties
           }
         />

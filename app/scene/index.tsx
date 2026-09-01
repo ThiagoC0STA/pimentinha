@@ -32,8 +32,8 @@ export default function Scene() {
    * monta no cliente, entao ler `window` no estado inicial e seguro.
    */
   const [area] = useState(() => window.innerWidth * window.innerHeight);
-  const himCount = Math.round(Math.min(6500, Math.max(1100, area / 340)));
-  const herCount = Math.round(himCount * 0.5);
+  const himCount = Math.round(Math.min(3200, Math.max(520, area / 760)));
+  const herCount = Math.round(himCount * 0.45);
 
   return (
     <Canvas
@@ -54,10 +54,10 @@ export default function Scene() {
         role="him"
         count={himCount}
         frame={frame}
-        size={lowPower ? 3.9 : 5.4}
+        size={lowPower ? 3.2 : 4.4}
         cold={["#6f88ab", "#2b4266"]}
         warm={["#ffe0c6", "#e89a5c"]}
-        opacity={lowPower ? 0.4 : 0.58}
+        opacity={lowPower ? 0.26 : 0.36}
       />
 
       {/* Ela: o unico ponto quente da tela enquanto tudo ainda e frio. */}
@@ -65,10 +65,10 @@ export default function Scene() {
         role="her"
         count={herCount}
         frame={frame}
-        size={lowPower ? 4.2 : 5.8}
+        size={lowPower ? 3.4 : 4.6}
         cold={["#ffc98a", "#ff8fa3"]}
         warm={["#ffdcb0", "#ff7f9c"]}
-        opacity={lowPower ? 0.5 : 0.7}
+        opacity={lowPower ? 0.34 : 0.46}
         fadeInPhase={0.9}
       />
 
