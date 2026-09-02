@@ -40,6 +40,10 @@
 
 html {
   background: var(--c-bg);
+  /* Sem pull-to-refresh: puxar pra baixo no topo recarregava o site no
+     celular, matando musica, temperatura e a casca ja quebrada. O gesto de
+     rolar nunca pode custar a experiencia inteira. */
+  overscroll-behavior-y: none;
 }
 
 body {
@@ -47,6 +51,7 @@ body {
   color: var(--c-fg);
   font-family: var(--font-sans-body), system-ui, sans-serif;
   overflow-x: hidden;
+  overscroll-behavior-y: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -300,6 +305,43 @@ html {
   animation: chuva-cai var(--dur, 1.8s) linear infinite;
   animation-delay: var(--delay, 0s);
   will-change: transform;
+}
+
+/* Gota grande escorrendo pela "janela": desce devagar em zigue-zague. O
+   proprio gradiente do span faz o rastro. */
+@keyframes gota-janela {
+  0% { transform: translate3d(0, -8vh, 0); }
+  22% { transform: translate3d(2px, 20vh, 0); }
+  46% { transform: translate3d(-3px, 44vh, 0); }
+  71% { transform: translate3d(2px, 70vh, 0); }
+  100% { transform: translate3d(-1px, 108vh, 0); }
+}
+.gota-janela {
+  animation: gota-janela var(--dur, 20s) linear infinite;
+  animation-delay: var(--delay, 0s);
+  will-change: transform;
+}
+
+/* O vaga-lume dela: entra, vagueia, e empurrado pra fora da tela, volta,
+   e empurrado de novo, volta e fica. "Voce nao desistiu", em luz, antes do
+   texto dizer. */
+@keyframes ela-insiste {
+  0% { transform: translate3d(105vw, 30vh, 0); opacity: 0; }
+  8% { transform: translate3d(70vw, 38vh, 0); opacity: 1; }
+  20% { transform: translate3d(45vw, 30vh, 0); opacity: 1; }
+  26% { transform: translate3d(48vw, 34vh, 0); opacity: 1; }
+  33% { transform: translate3d(108vw, 26vh, 0); opacity: 0; }
+  40% { transform: translate3d(108vw, 44vh, 0); opacity: 0; }
+  50% { transform: translate3d(60vw, 48vh, 0); opacity: 1; }
+  62% { transform: translate3d(38vw, 40vh, 0); opacity: 1; }
+  68% { transform: translate3d(110vw, 52vh, 0); opacity: 0; }
+  74% { transform: translate3d(110vw, 36vh, 0); opacity: 0; }
+  84% { transform: translate3d(55vw, 34vh, 0); opacity: 1; }
+  100% { transform: translate3d(42vw, 40vh, 0); opacity: 1; }
+}
+.ela-insiste {
+  animation: ela-insiste 26s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 @keyframes petala-cai {

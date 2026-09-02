@@ -58,6 +58,12 @@ export default function Scene() {
    */
   const [area] = useState(() => window.innerWidth * window.innerHeight);
 
+  // Celular sob pressao de GPU pode derrubar o contexto WebGL no meio do
+  // scroll: a cena pisca ou vira um retangulo preto, e parece que o site
+  // recarregou. Quando isso acontecer, recriamos o canvas inteiro em meio
+  // segundo, e a historia continua de onde estava.
+  const [geracao, setGeracao] = useState(0);
+
   // 0 = cena cheia; 1 = economia; 2 = minimo. A Governanta sobe isso quando o
   // FPS medido fica abaixo de 27 por dois segundos.
   const [nivel, setNivel] = useState(0);
@@ -68,6 +74,7 @@ export default function Scene() {
 
   return (
     <Canvas
+      key={geracao}
       frameloop={visible ? "always" : "never"}
       dpr={[1, dprMax]}
       gl={{
@@ -77,6 +84,13 @@ export default function Scene() {
       }}
       camera={{ position: [0, 0, 30], fov: 48, near: 0.1, far: 200 }}
       style={{ pointerEvents: "none" }}
+      onCreated={({ gl }) => {
+        gl.domElement.addEventListener("webglcontextlost", (e) => {
+          // Sem o preventDefault o contexto morre pra sempre.
+          e.preventDefault();
+          setTimeout(() => setGeracao((g) => g + 1), 500);
+        });
+      }}
     >
       {nivel < 2 && <Governanta onRebaixar={() => setNivel((n) => Math.min(2, n + 1))} />}
       <Rig frame={frame} />

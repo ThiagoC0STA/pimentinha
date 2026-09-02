@@ -40,7 +40,7 @@ const GOTAS = Array.from({ length: 24 }, (_, i) => ({
 }));
 
 function Chuva() {
-  const { broken, started, lowPower } = useExperience();
+  const { broken, started, act, lowPower } = useExperience();
   const ativo = started && !broken;
   const montado = useMontado(ativo);
   if (!montado) return null;
@@ -51,8 +51,10 @@ function Chuva() {
     <div
       aria-hidden
       className={cn(
-        "pointer-events-none fixed inset-0 z-[4] overflow-hidden transition-opacity duration-[1600ms]",
-        ativo ? "opacity-100" : "opacity-0",
+        "pointer-events-none fixed inset-0 z-[4] overflow-hidden transition-opacity duration-[2200ms]",
+        // A calmaria: chegando no ato do dedo, a chuva afina ate quase parar.
+        // O mundo prende a respiracao um pouco antes dela.
+        !ativo ? "opacity-0" : act >= 4 ? "opacity-20" : "opacity-100",
       )}
     >
       {gotas.map((g, i) => (
@@ -72,6 +74,115 @@ function Chuva() {
           }
         />
       ))}
+    </div>
+  );
+}
+
+/* --------------------------------------------------------------------------
+   A janela: gotas grandes escorrendo pela tela, como num vidro embacado.
+   Ela le a carta de dentro da janela dele.
+   -------------------------------------------------------------------------- */
+
+const GOTAS_JANELA = [
+  { left: 16, dur: 19, delay: -4, alto: 44, op: 0.26 },
+  { left: 55, dur: 26, delay: -14, alto: 38, op: 0.2 },
+  { left: 84, dur: 22, delay: -9, alto: 50, op: 0.3 },
+];
+
+function JanelaGotas() {
+  const { broken, started, lowPower } = useExperience();
+  const ativo = started && !broken;
+  const montado = useMontado(ativo);
+  if (!montado) return null;
+
+  const gotas = lowPower ? GOTAS_JANELA.slice(0, 2) : GOTAS_JANELA;
+
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        "pointer-events-none fixed inset-0 z-[4] overflow-hidden transition-opacity duration-[1600ms]",
+        ativo ? "opacity-100" : "opacity-0",
+      )}
+    >
+      {gotas.map((g, i) => (
+        <span
+          key={i}
+          className="gota-janela absolute top-0 w-[3px] rounded-full"
+          style={
+            {
+              left: `${g.left}%`,
+              height: `${g.alto}px`,
+              opacity: g.op,
+              background:
+                "linear-gradient(to bottom, transparent, rgb(190 208 238 / 0.55) 70%, rgb(214 228 250 / 0.95))",
+              "--dur": `${g.dur}s`,
+              "--delay": `${g.delay}s`,
+            } as CSSProperties
+          }
+        />
+      ))}
+    </div>
+  );
+}
+
+/* --------------------------------------------------------------------------
+   A lua do antes: minguante, pequena, unica companhia no ceu dele.
+   -------------------------------------------------------------------------- */
+
+function Lua() {
+  const { broken, started } = useExperience();
+  const ativo = started && !broken;
+  const montado = useMontado(ativo);
+  if (!montado) return null;
+
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        "pointer-events-none fixed top-[11%] right-[13%] z-[4] transition-opacity duration-[2000ms]",
+        ativo ? "opacity-100" : "opacity-0",
+      )}
+    >
+      <svg viewBox="0 0 48 48" width="40" height="40" fill="none">
+        <circle cx="24" cy="24" r="20" fill="rgb(190 208 238 / 0.06)" />
+        <path
+          d="M30 6 A 19 19 0 1 0 30 42 A 23.5 23.5 0 0 1 30 6 Z"
+          fill="#cfdcf5"
+          opacity="0.5"
+        />
+      </svg>
+    </div>
+  );
+}
+
+/* --------------------------------------------------------------------------
+   O vaga-lume dela: a primeira faisca quente da historia. Entra quando a
+   conversa comeca, e empurrado pra fora junto com tudo no ato 3, e volta.
+   Duas vezes. Depois fica.
+   -------------------------------------------------------------------------- */
+
+function VagalumeDela() {
+  const { broken, act } = useExperience();
+  const ativo = act >= 2 && !broken;
+  const montado = useMontado(act >= 1 && !broken, 2000);
+  if (!montado) return null;
+
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        "pointer-events-none fixed inset-0 z-[4] overflow-hidden transition-opacity duration-[2000ms]",
+        ativo ? "opacity-100" : "opacity-0",
+      )}
+    >
+      <span
+        className="ela-insiste absolute top-0 left-0 h-[3.5px] w-[3.5px] rounded-full"
+        style={{
+          background: "#ffd9a0",
+          boxShadow: "0 0 10px 3px rgb(245 192 122 / 0.5)",
+        }}
+      />
     </div>
   );
 }
@@ -192,6 +303,9 @@ export function Cenario() {
   return (
     <>
       <Chuva />
+      <JanelaGotas />
+      <Lua />
+      <VagalumeDela />
       <Petalas />
       <Farois />
     </>
