@@ -104,7 +104,7 @@ export function Voce() {
         <Detalhe texto="Em você animadinha." fotoIndex={5} rot={2} flip />
 
         <Detalhe
-          texto="E em você carinhosa, do jeito que você diz que aprendeu comigo."
+          texto="E agora estamos juntos pra sempre."
           fotoIndex={6}
           rot={-3}
         />
